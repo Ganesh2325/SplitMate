@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}{{ expense.description }} · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1">{{ expense.description }}</h1>
+    <p class="mb-0 text-secondary">{{ expense.expense_date|date:"j M Y" }} · {{ expense.get_split_method_display }} · {{ expense.get_status_display }}{% if expense.group %} · {{ expense.group.name }}{% endif %}</p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if can_edit and expense.status == "active" %}<a class="btn btn-outline-secondary" href="{% url 'expenses:edit' expense.pk %}">Edit</a>{% endif %}
+    <a class="btn btn-outline-secondary" href="{% url 'expenses:duplicate' expense.pk %}">Duplicate</a>
+  </div>
+</div>
+{% if expense.status == "void" %}<div class="alert alert-warning">Voided {{ expense.voided_at|date:"j M Y" }}{% if expense.void_reason %}: {{ expense.void_reason }}{% endif %}. The record stays so balances can be explained.</div>{% endif %}
+<div class="row g-4">
+  <div class="col-lg-7">
+    <section class="panel p-3 mb-3">
+      <h2 class="h5">{{ expense.amount|money:expense.currency }}</h2>
+      <p>{{ expense.category.name }}{% if expense.notes %} · {{ expense.notes }}{% endif %}</p>
+      <h3 class="h6">Who paid</h3>
+      <ul>{% for payer in expense.payers.all %}<li>{{ payer.user.display_name }} paid {{ payer.amount|money:expense.currency }}</li>{% endfor %}</ul>
+      <h3 class="h6">Shares</h3>
+      <ul>{% for share in expense.shares.all %}<li>{{ share.user.display_name }} owes {{ share.amount|money:expense.currency }}{% if share.percentage %} ({{ share.percentage }}%){% endif %}{% if share.weight %} ({{ share.weight }} shares){% endif %}</li>{% endfor %}</ul>
+      {% if expense.items.all %}
+      <h3 class="h6">Items</h3>
+      <ul>{% for item in expense.items.all %}<li>{{ item.description }} × {{ item.quantity }} = {{ item.line_total|money:expense.currency }} — {% for assignment in item.assignments.all %}{{ assignment.user.display_name }} {{ assignment.amount|money:expense.currency }}{% if not forloop.last %}, {% endif %}{% endfor %}</li>{% endfor %}</ul>
+      <p class="small">Tax {{ expense.tax_amount|money:expense.currency }}, discount {{ expense.discount_amount|money:expense.currency }}, tip {{ expense.tip_amount|money:expense.currency }}.</p>
+      {% endif %}
+      {% if expense.tag_assignments.all %}<p>Tags: {% for assignment in expense.tag_assignments.all %}{{ assignment.tag.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+    </section>
+    <section class="panel p-3" id="comments">
+      <h2 class="h5">Comments</h2>
+      {% for comment in comments %}
+        {% if not comment.hidden_at %}
+        <article class="border-bottom py-2">
+          <strong>{{ comment.author.display_name }}</strong>
+          <span class="text-secondary">{{ comment.created_at|date:"j M Y H:i" }}{% if comment.edited_at %} · edited{% endif %}</span>
+          <p class="mb-1">{{ comment.body }}</p>
+          {% if comment.author_id == user.id %}
+          <form method="post" action="{% url 'expenses:comment' expense.pk %}" class="d-flex gap-2">{% csrf_token %}<input type="hidden" name="comment_id" value="{{ comment.pk }}"><input class="form-control form-control-sm" name="body" value="{{ comment.body }}" aria-label="Edit comment"><button class="btn btn-sm btn-outline-secondary" type="submit">Save</button></form>
+          {% endif %}
+          {% if comment.author_id == user.id or can_edit %}
+          <form method="post" action="{% url 'expenses:comment' expense.pk %}">{% csrf_token %}<input type="hidden" name="action" value="hide"><input type="hidden" name="comment_id" value="{{ comment.pk }}"><button class="btn btn-link btn-sm p-0" type="submit">Hide</button></form>
+          {% endif %}
+        </article>
+        {% endif %}
+      {% empty %}<p class="text-secondary">No comments yet.</p>{% endfor %}
+      {% include "includes/pagination.html" %}
+      <form method="post" action="{% url 'expenses:comment' expense.pk %}" class="mt-3">{% csrf_token %}
+        <label class="form-label" for="body">Add a comment</label>
+        <textarea class="form-control mb-2" id="body" name="body" required></textarea>
+        <button class="btn btn-forest" type="submit">Post comment</button>
+      </form>
+    </section>
+  </div>
+  <div class="col-lg-5">
+    <section class="panel p-3 mb-3">
+      <h2 class="h5">Receipts</h2>
+      <ul class="list-unstyled">
+        {% for file in expense.attachments.all %}
+        <li class="mb-2">
+          <a href="{% url 'expenses:receipt_download' file.pk %}">{{ file.original_name }}</a>
+          <a href="{% url 'expenses:receipt_download' file.pk %}?download=1">Download</a>
+          {% if can_edit %}
+          <form class="d-inline" method="post" action="{% url 'expenses:receipt_delete' file.pk %}" data-confirm="Remove this receipt?">{% csrf_token %}<button class="btn btn-link btn-sm" type="submit">Remove</button></form>
+          {% endif %}
+        </li>
+        {% empty %}<li class="text-secondary">No receipts.</li>{% endfor %}
+      </ul>
+      {% if can_edit %}
+      <form method="post" action="{% url 'expenses:receipt' expense.pk %}" enctype="multipart/form-data">{% csrf_token %}
+        <input class="form-control mb-2" type="file" name="receipt" required>
+        <button class="btn btn-outline-secondary" type="submit">Upload</button>
+      </form>
+      {% endif %}
+    </section>
+    <section class="panel p-3 mb-3">
+      <h2 class="h5">History</h2>
+      <ol class="mb-0">{% for revision in expense.revisions.all %}<li>Revision {{ revision.number }} by {{ revision.actor.display_name }} {{ revision.created_at|date:"j M Y H:i" }}{% if revision.reason %} — {{ revision.reason }}{% endif %}</li>{% endfor %}</ol>
+    </section>
+    {% if can_edit and expense.status == "active" %}
+    <section class="panel p-3">
+      <h2 class="h5">Void this expense</h2>
+      <form method="post" action="{% url 'expenses:void' expense.pk %}" data-confirm="Void this expense? The record stays, and balances are recalculated.">{% csrf_token %}
+        <label class="form-label" for="reason">Reason</label>
+        <input class="form-control mb-2" id="reason" name="reason" required>
+        <button class="btn btn-outline-danger" type="submit">Void expense</button>
+      </form>
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

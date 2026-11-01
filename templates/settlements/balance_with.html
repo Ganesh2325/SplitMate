@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}Balance with {{ other.display_name }}{% endblock %}
+{% block content %}
+<h1 class="h3">Balance with {{ other.display_name }}</h1>
+<p>Personal expenses and repayments in {{ currency }}. Group bills stay on the group balance page.</p>
+{% for line in lines %}<p><a href="{{ line.path }}">{{ line.date|date:"j M Y" }}</a> {{ line.label }} {{ line.effect|money:currency }}{% if line.void %} · excluded{% endif %}</p>{% empty %}<p>No personal transactions in {{ currency }}.</p>{% endfor %}
+<a class="btn btn-amber" href="{% url 'settlements:settle' %}?recipient={{ other.pk }}&currency={{ currency }}">Record a repayment</a>
+{% endblock %}

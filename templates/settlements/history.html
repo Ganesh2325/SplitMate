@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}Settlement history · SplitMate{% endblock %}
+{% block content %}
+<h1 class="h3">Settlement history</h1>
+<div class="panel">
+  {% for item in settlements %}
+  <p class="border-bottom p-3 mb-0"><a href="{% url 'settlements:detail' item.pk %}">{{ item.settled_on|date:"j M Y" }}</a> {{ item.payer.display_name }} paid {{ item.recipient.display_name }} {{ item.amount|money:item.currency }} · {{ item.get_status_display }}{% if item.group %} · {{ item.group.name }}{% endif %}</p>
+  {% empty %}{% include "includes/empty.html" with empty_message="No repayments recorded." empty_url="/settle/" empty_action="Record a repayment" %}{% endfor %}
+</div>
+{% include "includes/pagination.html" %}
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}Reports · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1 class="h3 mb-0">Reports</h1>
+  <div class="no-print d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{% url 'reports:export' 'csv' %}?{{ request.GET.urlencode }}">CSV</a>
+    <a class="btn btn-outline-secondary" href="{% url 'reports:export' 'xlsx' %}?{{ request.GET.urlencode }}">Excel</a>
+    <a class="btn btn-outline-secondary" href="{% url 'reports:export' 'pdf' %}?{{ request.GET.urlencode }}">PDF</a>
+    <button class="btn btn-outline-secondary" type="button" onclick="window.print()">Print</button>
+  </div>
+</div>
+<form class="panel p-3 mb-3 no-print" method="get">
+  <div class="row g-2">
+    <div class="col-md-3"><label class="form-label" for="preset">Period</label>
+      <select class="form-select" id="preset" name="preset">
+        <option value="this_month">This month</option>
+        <option value="last_month" {% if filters.preset == "last_month" %}selected{% endif %}>Previous month</option>
+        <option value="this_year" {% if filters.preset == "this_year" %}selected{% endif %}>This year</option>
+        <option value="custom" {% if filters.preset == "custom" %}selected{% endif %}>Custom</option>
+      </select>
+    </div>
+    <div class="col-md-2"><label class="form-label" for="date_from">From</label><input class="form-control" id="date_from" type="date" name="date_from" value="{{ filters.date_from }}"></div>
+    <div class="col-md-2"><label class="form-label" for="date_to">To</label><input class="form-control" id="date_to" type="date" name="date_to" value="{{ filters.date_to }}"></div>
+    <div class="col-md-2"><label class="form-label" for="currency">Currency</label>
+      <select class="form-select" id="currency" name="currency">
+        <option value="INR" {% if currency == "INR" %}selected{% endif %}>INR</option>
+        <option value="USD" {% if currency == "USD" %}selected{% endif %}>USD</option>
+        <option value="EUR" {% if currency == "EUR" %}selected{% endif %}>EUR</option>
+        <option value="GBP" {% if currency == "GBP" %}selected{% endif %}>GBP</option>
+      </select>
+    </div>
+    <div class="col-md-3"><label class="form-label" for="group">Group</label>
+      <select class="form-select" id="group" name="group"><option value="">My spending</option>{% for item in groups %}<option value="{{ item.id }}" {% if group and group.id == item.id %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select>
+    </div>
+  </div>
+  <button class="btn btn-forest mt-3" type="submit">Update report</button>
+</form>
+<p>{{ start|date:"j M Y" }} – {{ end|date:"j M Y" }} · {{ currency }}</p>
+{{ chart|json_script:"chart-data" }}
+<div class="row g-3 mb-3">
+  <div class="col-md-6"><canvas data-chart="chart-data" data-kind="line" aria-label="Monthly spending"></canvas></div>
+  <div class="col-md-6"><canvas data-chart="chart-data" data-kind="doughnut" aria-label="Category spending"></canvas></div>
+</div>
+{% if personal %}
+<div class="row g-3 mb-3">
+  <div class="col-md-3"><div class="panel p-3"><div class="text-secondary">You paid</div><div class="stat-value">{{ personal.total_paid|money:currency }}</div></div></div>
+  <div class="col-md-3"><div class="panel p-3"><div class="text-secondary">Your share</div><div class="stat-value">{{ personal.total_share|money:currency }}</div></div></div>
+  <div class="col-md-3"><div class="panel p-3"><div class="text-secondary">Expenses</div><div class="stat-value">{{ personal.count }}</div></div></div>
+  <div class="col-md-3"><div class="panel p-3"><div class="text-secondary">Average share</div><div class="stat-value">{{ personal.average|money:currency }}</div></div></div>
+</div>
+<section class="panel p-3 mb-3"><h2 class="h5">By category</h2>{% for row in personal.by_category %}<p>{{ row.expense__category__name|default:"Uncategorized" }} {{ row.total|money:currency }}</p>{% empty %}<p>No spending in this period.</p>{% endfor %}</section>
+<section class="panel p-3 mb-3"><h2 class="h5">Largest shares</h2>{% for share in personal.largest %}<p><a href="{% url 'expenses:detail' share.expense_id %}">{{ share.expense.description }}</a> {{ share.amount|money:currency }}</p>{% endfor %}</section>
+<section class="panel p-3"><h2 class="h5">Settlements</h2>{% for item in personal.settlements %}<p>{{ item.settled_on|date:"j M Y" }} {{ item.payer.display_name }} → {{ item.recipient.display_name }} {{ item.amount|money:item.currency }}</p>{% empty %}<p>None in this period.</p>{% endfor %}</section>
+{% endif %}
+{% if grouped %}
+<div class="row g-3 mb-3">
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">Group spending</div><div class="stat-value">{{ grouped.total|money:group.currency }}</div></div></div>
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">Expenses</div><div class="stat-value">{{ grouped.count }}</div></div></div>
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">Average expense</div><div class="stat-value">{{ grouped.average|money:group.currency }}</div></div></div>
+</div>
+<section class="panel p-3 mb-3"><h2 class="h5">Shares by member</h2>{% for row in grouped.by_member %}<p>{{ row.user__first_name|default:row.user__username }} {{ row.total|money:group.currency }}</p>{% endfor %}</section>
+<section class="panel p-3 mb-3"><h2 class="h5">Payments by member</h2>{% for row in grouped.contributions %}<p>{{ row.user__first_name|default:row.user__username }} paid {{ row.total|money:group.currency }}</p>{% endfor %}</section>
+<section class="panel p-3"><h2 class="h5">By category</h2>{% for row in grouped.by_category %}<p>{{ row.category__name }} {{ row.total|money:group.currency }}</p>{% endfor %}</section>
+{% endif %}
+{% endblock %}

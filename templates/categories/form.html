@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}New category · SplitMate{% endblock %}
+{% block content %}
+<div class="panel p-4" style="max-width: 520px;"><h1 class="h3">Your category</h1>
+<form method="post">{% csrf_token %}<label class="form-label" for="name">Name</label><input class="form-control mb-3" id="name" name="name" required maxlength="80"><button class="btn btn-forest" type="submit">Save</button></form>
+<p class="small text-secondary mt-3">Custom categories belong to your account. System categories are shared and cannot be deleted.</p>
+</div>
+{% endblock %}

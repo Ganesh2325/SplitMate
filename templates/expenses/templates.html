@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Templates · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3"><h1 class="h3">Templates and split preferences</h1><div class="d-flex gap-2"><a class="btn btn-amber" href="{% url 'expenses:template_add' %}">New template</a><a class="btn btn-outline-secondary" href="{% url 'expenses:preference_add' %}">New preference</a></div></div>
+<p>A template does not create an expense until you use it and confirm the form.</p>
+<div class="row g-4">
+  <div class="col-md-6"><div class="panel p-3"><h2 class="h5">Templates</h2>
+    {% for item in templates %}
+    <div class="d-flex justify-content-between border-bottom py-2"><span>{{ item.name }}</span><span>
+      <a href="{% url 'expenses:template_use' item.pk %}">Use</a>
+      <form class="d-inline" method="post" action="{% url 'expenses:template_delete' item.pk %}">{% csrf_token %}<button class="btn btn-link btn-sm" type="submit">Delete</button></form>
+    </span></div>
+    {% empty %}<p class="empty-state">No templates yet.</p>{% endfor %}
+  </div></div>
+  <div class="col-md-6"><div class="panel p-3"><h2 class="h5">Saved split preferences</h2>
+    {% for item in preferences %}
+    <div class="d-flex justify-content-between border-bottom py-2"><span>{{ item.name }} · {{ item.get_split_method_display }} · {{ item.currency }}</span>
+      <form method="post" action="{% url 'expenses:preference_delete' item.pk %}">{% csrf_token %}<button class="btn btn-link btn-sm" type="submit">Delete</button></form>
+    </div>
+    {% empty %}<p class="empty-state">No preferences yet.</p>{% endfor %}
+  </div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}SplitMate · Shared expenses{% endblock %}
+{% block content %}
+<div class="public-wrap">
+  <section class="hero">
+    <div class="container">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-6">
+          <p class="eyebrow text-uppercase small mb-2">Shared expenses, kept honest</p>
+          <h1 class="display-4">Know who paid, who shares, and who still owes.</h1>
+          <p class="lead mt-3">SplitMate keeps a clear record of group bills, personal expenses, informal loans, and repayments. Every balance can be traced back to the transactions that created it.</p>
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <a class="btn btn-amber btn-lg" href="{% url 'accounts:register' %}">Create an account</a>
+            <a class="btn btn-outline-light btn-lg" href="{% url 'accounts:login' %}">Log in</a>
+          </div>
+          <p class="mt-3 mb-0">New here? Create an account first. Then log in with the same username and password to open your dashboard.</p>
+        </div>
+        <div class="col-lg-6">
+          <img class="landing-figure" src="{% static 'images/hero-split.svg' %}" alt="A hotel bill of 4,000 split into four equal shares of 1,000">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container py-5">
+    <h2 class="h3 mb-4">How a shared bill becomes a balance</h2>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <article class="panel p-4 h-100">
+          <span class="step-index mb-3">1</span>
+          <h3 class="h5 mt-3">Record who paid</h3>
+          <p class="mb-0">One person or several people can pay. Their payments are stored separately from each person's share of the bill.</p>
+        </article>
+      </div>
+      <div class="col-md-4">
+        <article class="panel p-4 h-100">
+          <span class="step-index mb-3">2</span>
+          <h3 class="h5 mt-3">Choose the split</h3>
+          <p class="mb-0">Divide the total equally, by exact amounts, by percentages, by shares, or by item. The server checks that the shares add up.</p>
+        </article>
+      </div>
+      <div class="col-md-4">
+        <article class="panel p-4 h-100">
+          <span class="step-index mb-3">3</span>
+          <h3 class="h5 mt-3">Settle when you are ready</h3>
+          <p class="mb-0">SplitMate can suggest fewer repayments. Nothing is recorded until you confirm the payment yourself.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="container pb-5">
+    <div class="row align-items-center g-4 mb-5">
+      <div class="col-lg-6">
+        <img class="landing-figure" src="{% static 'images/feature-balances.svg' %}" alt="Group balances for Ganesh, Priya, Arjun, and Rahul">
+      </div>
+      <div class="col-lg-6 feature-copy">
+        <h2>Balances you can explain</h2>
+        <p>A positive balance means that person should receive money. A negative balance means they owe money. Zero means that pair is settled in that currency.</p>
+        <p class="mb-0">Group expenses stay with the group. Personal expenses and informal loans are listed on their own, so the same bill is never counted twice.</p>
+      </div>
+    </div>
+    <div class="row align-items-center g-4 mb-5">
+      <div class="col-lg-6 order-lg-2">
+        <img class="landing-figure" src="{% static 'images/feature-settle.svg' %}" alt="Priya is suggested to pay Ganesh 1,000">
+      </div>
+      <div class="col-lg-6 feature-copy">
+        <h2>A plan, then a record</h2>
+        <p>Suggestions show who can pay whom, for how much, and in which group. Recording cash, UPI, a bank transfer, or Paytm saves your note. SplitMate does not move the money.</p>
+        <p class="mb-0">If a repayment was entered by mistake, reverse it. The original row stays in the history.</p>
+      </div>
+    </div>
+    <div class="row align-items-center g-4">
+      <div class="col-lg-6">
+        <img class="landing-figure" src="{% static 'images/feature-history.svg' %}" alt="A timeline of an added expense, an edit, and a reversed repayment">
+      </div>
+      <div class="col-lg-6 feature-copy">
+        <h2>History stays on the record</h2>
+        <p>Edits, voids, and reversals change the current balance and keep the earlier version. You can open the expense or repayment that explains any figure.</p>
+        <p class="mb-0">Receipts, comments, categories, budgets, and recurring bills sit beside that history.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container pb-5">
+    <h2 class="h3 mb-4">Made for ordinary shared costs</h2>
+    <div class="row g-3">
+      <div class="col-md-6 col-xl-3"><article class="panel p-4 h-100"><h3 class="h6">Trips</h3><p class="mb-0">Hotels, tickets, food, and transport for the whole group.</p></article></div>
+      <div class="col-md-6 col-xl-3"><article class="panel p-4 h-100"><h3 class="h6">Roommates</h3><p class="mb-0">Rent, electricity, water, internet, and household supplies.</p></article></div>
+      <div class="col-md-6 col-xl-3"><article class="panel p-4 h-100"><h3 class="h6">Students</h3><p class="mb-0">Hostel meals, projects, and college expenses with friends.</p></article></div>
+      <div class="col-md-6 col-xl-3"><article class="panel p-4 h-100"><h3 class="h6">Families and teams</h3><p class="mb-0">Household bills and event costs, with roles for who can edit.</p></article></div>
+    </div>
+  </section>
+
+  <section class="container pb-5">
+    <div class="panel p-4 p-md-5 d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h2 class="h3 mb-2">Start with an account</h2>
+        <p class="mb-0">Create your account, then log in. Your dashboard shows what you owe, what you are owed, and the latest expenses.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a class="btn btn-amber" href="{% url 'accounts:register' %}">Create an account</a>
+        <a class="btn btn-outline-forest" href="{% url 'accounts:login' %}">Log in</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <a href="{% url 'accounts:terms' %}">Terms</a>
+    <span aria-hidden="true"> · </span>
+    <a href="{% url 'accounts:privacy' %}">Privacy</a>
+  </footer>
+</div>
+{% endblock %}

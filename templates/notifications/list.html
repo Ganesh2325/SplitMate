@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Notifications · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3"><h1 class="h3">Notifications</h1>
+  <form method="post" action="{% url 'notifications:read_all' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Mark all read</button></form>
+</div>
+<div class="panel">
+  {% for item in notifications %}
+  <a class="d-block border-bottom p-3 text-decoration-none text-reset {% if not item.read_at %}fw-semibold{% endif %}" href="{% url 'notifications:open' item.pk %}">
+    {{ item.message }} <span class="text-secondary fw-normal">{{ item.created_at|timesince }} ago</span>
+    {% if item.read_at %}<span class="visually-hidden">Read</span>{% else %}<span class="badge text-bg-secondary">Unread</span>{% endif %}
+  </a>
+  {% empty %}{% include "includes/empty.html" with empty_message="No notifications." %}{% endfor %}
+</div>
+{% include "includes/pagination.html" %}
+{% endblock %}

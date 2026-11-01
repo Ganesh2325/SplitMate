@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Log in · SplitMate{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="panel p-4">
+      <h1 class="h3">Log in</h1>
+      <p>Use the username and password from your SplitMate account.</p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "includes/form_fields.html" %}
+        <button class="btn btn-forest" type="submit">Log in</button>
+      </form>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <a class="btn btn-outline-forest btn-sm" href="{% url 'accounts:password_reset' %}">Forgot password</a>
+        <a class="btn btn-amber btn-sm" href="{% url 'accounts:register' %}">Create an account</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

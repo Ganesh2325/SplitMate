@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}Recurring expenses · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3"><h1 class="h3">Recurring expenses</h1><a class="btn btn-amber" href="{% url 'recurring:add' %}">New schedule</a></div>
+<p>A schedule creates an expense only when <code>python manage.py process_recurring_expenses</code> runs. Running it twice does not duplicate a date.</p>
+{% for row in rows %}
+<article class="panel p-3 mb-3">
+  <h2 class="h5">{{ row.description }}</h2>
+  <p>{{ row.amount|money:row.currency }} · {{ row.get_frequency_display }} · next {{ row.next_occurrence|date:"j M Y"|default:"—" }} · {{ row.get_status_display }}{% if row.group %} · {{ row.group.name }}{% endif %}</p>
+  <form method="post" action="{% url 'recurring:status' row.pk %}">{% csrf_token %}
+    {% if row.status == "active" %}<button class="btn btn-outline-secondary btn-sm" name="action" value="pause" type="submit">Pause</button>{% endif %}
+    {% if row.status == "paused" %}<button class="btn btn-outline-secondary btn-sm" name="action" value="resume" type="submit">Resume</button>{% endif %}
+    {% if row.status != "cancelled" %}<button class="btn btn-outline-danger btn-sm" name="action" value="cancel" type="submit">Cancel future dates</button>{% endif %}
+  </form>
+</article>
+{% empty %}<div class="panel">{% include "includes/empty.html" with empty_message="No recurring expenses." empty_url="/recurring/add/" empty_action="Create one" %}</div>{% endfor %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Deactivate · SplitMate{% endblock %}
+{% block content %}
+<div class="panel p-4" style="max-width: 560px;">
+  <h1 class="h3">Deactivate account</h1>
+  <p>You will be signed out. A staff member can reactivate a deactivated account. Financial history stays in place.</p>
+  <form method="post" data-confirm="Deactivate this account?">
+    {% csrf_token %}
+    <label class="form-label" for="password">Password</label>
+    <input class="form-control mb-3" id="password" name="password" type="password" autocomplete="current-password" required>
+    <button class="btn btn-outline-danger" type="submit">Deactivate</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Create group · SplitMate{% endblock %}
+{% block content %}
+<div class="panel p-4" style="max-width: 680px;">
+  <h1 class="h3">Create a group</h1>
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    <label class="form-label" for="name">Name</label><input class="form-control mb-3" id="name" name="name" required maxlength="120">
+    <label class="form-label" for="description">Description</label><textarea class="form-control mb-3" id="description" name="description"></textarea>
+    <label class="form-label" for="group_type">Type</label>
+    <select class="form-select mb-3" id="group_type" name="group_type">{% for value, label in types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+    <label class="form-label" for="currency">Currency</label>
+    <select class="form-select mb-3" id="currency" name="currency">{% for value, label in currencies %}<option value="{{ value }}" {% if value == user.preferred_currency %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <label class="form-label" for="default_split_method">Default split</label>
+    <select class="form-select mb-3" id="default_split_method" name="default_split_method">{% for value, label in methods %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+    <label class="form-label" for="image">Image</label><input class="form-control mb-3" id="image" type="file" name="image" accept="image/jpeg,image/png,image/webp">
+    <div class="form-check mb-3"><input class="form-check-input" id="simplify_debts" type="checkbox" name="simplify_debts" checked><label class="form-check-label" for="simplify_debts">Suggest simplified repayments</label></div>
+    <button class="btn btn-amber" type="submit">Create group</button>
+  </form>
+</div>
+{% endblock %}

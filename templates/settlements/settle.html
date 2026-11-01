@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Settle up · SplitMate{% endblock %}
+{% block content %}
+<div class="panel p-4" style="max-width: 720px;">
+  <h1 class="h3">Record a repayment</h1>
+  <p>This saves a record that you or someone else paid. SplitMate does not send money through UPI, a bank, or Paytm.</p>
+  <form method="post" data-once>{% csrf_token %}
+    <input type="hidden" name="client_token" value="{{ token }}">
+    <label class="form-label" for="payer">Who paid</label>
+    <select class="form-select mb-3" id="payer" name="payer" required>
+      {% for person in people %}<option value="{{ person.id }}" {% if initial.payer|stringformat:"s" == person.id|stringformat:"s" %}selected{% endif %}>{{ person.display_name }}</option>{% endfor %}
+    </select>
+    <label class="form-label" for="recipient">Who received it</label>
+    <select class="form-select mb-3" id="recipient" name="recipient" required>
+      <option value="">Choose</option>
+      {% for person in people %}<option value="{{ person.id }}" {% if initial.recipient|stringformat:"s" == person.id|stringformat:"s" %}selected{% endif %}>{{ person.display_name }}</option>{% endfor %}
+    </select>
+    <label class="form-label" for="amount">Amount</label>
+    <input class="form-control mb-3" id="amount" name="amount" inputmode="decimal" required value="{{ initial.amount }}">
+    <label class="form-label" for="currency">Currency</label>
+    <select class="form-select mb-3" id="currency" name="currency">{% for value, label in currencies %}<option value="{{ value }}" {% if initial.currency == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <label class="form-label" for="group">Group, if this settles a group balance</label>
+    <select class="form-select mb-3" id="group" name="group"><option value="">Personal, not a group</option>{% for group in groups %}<option value="{{ group.id }}" {% if initial.group|stringformat:"s" == group.id|stringformat:"s" %}selected{% endif %}>{{ group.name }} ({{ group.currency }})</option>{% endfor %}</select>
+    <label class="form-label" for="settled_on">Date</label>
+    <input class="form-control mb-3" id="settled_on" type="date" name="settled_on" required value="{{ initial.settled_on }}">
+    <label class="form-label" for="method">How it was paid</label>
+    <select class="form-select mb-3" id="method" name="method">{% for value, label in methods %}<option value="{{ value }}" {% if initial.method == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <label class="form-label" for="reference">Reference</label><input class="form-control mb-3" id="reference" name="reference" value="{{ initial.reference }}">
+    <label class="form-label" for="note">Note</label><input class="form-control mb-3" id="note" name="note" value="{{ initial.note }}">
+    <div class="form-check mb-3"><input class="form-check-input" id="is_advance" type="checkbox" name="is_advance" {% if initial.is_advance %}checked{% endif %}><label class="form-check-label" for="is_advance">This is an advance or an amount above the current debt</label></div>
+    <button class="btn btn-amber" type="submit" data-save>Record repayment</button>
+  </form>
+</div>
+{% endblock %}

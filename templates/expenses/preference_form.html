@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Split preference · SplitMate{% endblock %}
+{% block content %}
+<div class="panel p-4" style="max-width: 640px;">
+  <h1 class="h3">Save a split preference</h1>
+  <form method="post">{% csrf_token %}
+    <label class="form-label" for="name">Name</label><input class="form-control mb-3" id="name" name="name" required>
+    <label class="form-label" for="split_method">Method</label>
+    <select class="form-select mb-3" id="split_method" name="split_method"><option value="equal">Equal</option><option value="exact">Exact</option><option value="percent">Percentage</option><option value="shares">Shares</option></select>
+    <label class="form-label" for="note">Note</label><textarea class="form-control mb-3" id="note" name="note"></textarea>
+    <button class="btn btn-forest" type="submit">Save preference</button>
+  </form>
+</div>
+{% endblock %}

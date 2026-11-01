@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 360" role="img" aria-label="An expense history with an edit and a reversal kept on record">
+  <rect width="520" height="360" rx="24" fill="#1b2a24"/>
+  <rect x="40" y="40" width="440" height="280" rx="20" fill="#fffaf3"/>
+  <circle cx="92" cy="104" r="10" fill="#1f6f5b"/>
+  <circle cx="92" cy="176" r="10" fill="#d9782f"/>
+  <circle cx="92" cy="248" r="10" fill="#8d3326"/>
+  <path d="M92 114v52M92 186v52" stroke="#e4ddd2" stroke-width="4"/>
+  <text x="122" y="110" fill="#17241f" font-family="Segoe UI, sans-serif" font-size="18">Expense added</text>
+  <text x="122" y="182" fill="#17241f" font-family="Segoe UI, sans-serif" font-size="18">Amount edited</text>
+  <text x="122" y="254" fill="#17241f" font-family="Segoe UI, sans-serif" font-size="18">Repayment reversed</text>
+</svg>

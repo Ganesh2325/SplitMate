@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}Expenses · {{ group.name }}{% endblock %}
+{% block content %}
+<h1 class="h3">{{ group.name }} expenses</h1>
+<div class="panel">
+  {% for expense in expenses %}
+  <p class="border-bottom p-3 mb-0"><a href="{% url 'expenses:detail' expense.pk %}">{{ expense.description }}</a> {{ expense.amount|money:expense.currency }} · {{ expense.expense_date|date:"j M Y" }} · {{ expense.category.name }} · {{ expense.get_status_display }}</p>
+  {% empty %}{% include "includes/empty.html" with empty_message="This group has no expenses." %}{% endfor %}
+</div>
+{% endblock %}

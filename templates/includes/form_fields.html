@@ -1,0 +1,37 @@
+{% for error in form.non_field_errors %}
+<div class="alert alert-danger" role="alert">{{ error }}</div>
+{% endfor %}
+{% for field in form %}
+<div class="mb-3">
+  {% if field.name == "accept_terms" %}
+  <div class="form-check">
+    {{ field }}
+    <label class="form-check-label agreement" for="{{ field.id_for_label }}">I agree to the <a href="{% url 'accounts:terms' %}">terms</a> and <a href="{% url 'accounts:privacy' %}">privacy policy</a>.</label>
+  </div>
+  {% elif field.field.widget.input_type == "checkbox" %}
+  <div class="form-check">
+    {{ field }}
+    <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  </div>
+  {% elif field.field.widget.input_type == "password" %}
+  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  <div class="password-field">
+    {{ field }}
+    <button class="password-toggle" type="button" data-password-toggle aria-label="Show password" aria-pressed="false">
+      <i class="bi bi-eye" aria-hidden="true"></i>
+    </button>
+  </div>
+  {% else %}
+  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field }}
+  {% endif %}
+  {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+  {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+  {% if field.name == "password2" or field.name == "new_password2" %}
+  <div class="password-match is-mismatch" data-password-match data-for="{{ field.id_for_label }}" data-with="{% if field.name == 'password2' %}id_password1{% else %}id_new_password1{% endif %}" hidden>
+    <div class="password-match-track" aria-hidden="true"><span class="password-match-fill"></span></div>
+    <p class="password-match-text">Passwords do not match.</p>
+  </div>
+  {% endif %}
+</div>
+{% endfor %}

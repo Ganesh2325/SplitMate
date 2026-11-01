@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Delete account · SplitMate{% endblock %}
+{% block content %}
+<div class="panel p-4" style="max-width: 560px;">
+  <h1 class="h3">Delete account</h1>
+  <p>Your name and email are replaced, your password is discarded, and you are signed out. Expenses and repayments shared with other people remain so their balances stay correct. You cannot delete the account while you are the only owner of a group that still has other members. Transfer ownership first.</p>
+  <form method="post" data-confirm="Anonymize this account? This cannot be undone from the site.">
+    {% csrf_token %}
+    <label class="form-label" for="confirm">Type your username ({{ user.username }})</label>
+    <input class="form-control mb-3" id="confirm" name="confirm" required>
+    <label class="form-label" for="password">Password</label>
+    <input class="form-control mb-3" id="password" name="password" type="password" required>
+    <button class="btn btn-outline-danger" type="submit">Anonymize account</button>
+  </form>
+</div>
+{% endblock %}

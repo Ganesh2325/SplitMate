@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Friends · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3"><h1 class="h3">Friends</h1><div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="{% url 'friends:requests' %}">Requests</a><a class="btn btn-amber" href="{% url 'friends:add' %}">Add friend</a></div></div>
+{% if friends %}
+<div class="panel">
+  <ul class="list-group list-group-flush">
+    {% for friend in friends %}
+    <li class="list-group-item bg-transparent d-flex justify-content-between"><a href="{% url 'friends:detail' friend.pk %}">{{ friend.display_name }}</a><span class="text-secondary">@{{ friend.username }}</span></li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+<div class="panel">{% include "includes/empty.html" with empty_message="You have no friends on SplitMate yet." empty_url="/friends/add/" empty_action="Find someone" %}</div>
+{% endif %}
+{% endblock %}

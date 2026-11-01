@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Add a friend · SplitMate{% endblock %}
+{% block content %}
+<h1 class="h3">Add a friend</h1>
+<form class="panel p-3 mb-3" method="get"><label class="form-label" for="q">Search by name or username</label><div class="input-group"><input class="form-control" id="q" name="q" value="{{ query }}"><button class="btn btn-forest" type="submit">Search</button></div></form>
+{% if results %}
+<div class="panel mb-3">
+  {% for person in results %}
+  <form class="d-flex justify-content-between align-items-center border-bottom p-3" method="post">{% csrf_token %}
+    <span>{{ person.display_name }} <span class="text-secondary">@{{ person.username }}</span></span>
+    <input type="hidden" name="user_id" value="{{ person.pk }}"><button class="btn btn-outline-secondary" type="submit">Send request</button>
+  </form>
+  {% endfor %}
+</div>
+{% elif query %}<p>No matching accounts.</p>{% endif %}
+<div class="panel p-3">
+  <h2 class="h5">Invite by email</h2>
+  <form method="post">{% csrf_token %}
+    <label class="form-label" for="email">Email</label>
+    <input class="form-control mb-3" id="email" type="email" name="email">
+    <button class="btn btn-amber" type="submit">Send invitation</button>
+  </form>
+  <p class="small text-secondary mb-0">If the address already has an account, they get an in-app request. Otherwise the invitation email is sent when mail is configured. In local development it prints to the console.</p>
+</div>
+{% endblock %}

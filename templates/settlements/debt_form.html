@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Record a loan · SplitMate{% endblock %}
+{% block content %}
+<div class="panel p-4" style="max-width: 640px;">
+  <h1 class="h3">Record a loan</h1>
+  <form method="post" data-once>{% csrf_token %}<input type="hidden" name="client_token" value="{{ token }}">
+    <label class="form-label" for="direction">Direction</label>
+    <select class="form-select mb-3" id="direction" name="direction"><option value="lent">I lent money</option><option value="borrowed">I borrowed money</option></select>
+    <label class="form-label" for="person">Other person</label>
+    <select class="form-select mb-3" id="person" name="person" required>{% for friend in friends %}<option value="{{ friend.id }}">{{ friend.display_name }}</option>{% endfor %}</select>
+    <label class="form-label" for="amount">Amount</label><input class="form-control mb-3" id="amount" name="amount" required inputmode="decimal">
+    <label class="form-label" for="currency">Currency</label>
+    <select class="form-select mb-3" id="currency" name="currency">{% for value, label in currencies %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+    <label class="form-label" for="borrowed_on">Date</label><input class="form-control mb-3" id="borrowed_on" type="date" name="borrowed_on" value="{{ today|date:'Y-m-d' }}" required>
+    <label class="form-label" for="notes">Notes</label><textarea class="form-control mb-3" id="notes" name="notes"></textarea>
+    <button class="btn btn-amber" type="submit" data-save>Save loan</button>
+  </form>
+</div>
+{% endblock %}

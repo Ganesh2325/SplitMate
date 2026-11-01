@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Not found · SplitMate{% endblock %}
+{% block content %}
+<div class="panel p-4"><h1 class="h3">That page is not available</h1><p>It may be private, or the address may be wrong.</p><a href="{% url 'accounts:landing' %}">Go home</a></div>
+{% endblock %}

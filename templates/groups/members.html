@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Members · {{ group.name }}{% endblock %}
+{% block content %}
+<h1 class="h3">{{ group.name }} members</h1>
+{% if can_manage %}
+<form class="panel p-3 mb-3" method="post" action="{% url 'groups:invite' group.pk %}">{% csrf_token %}
+  <label class="form-label" for="identifier">Invite by username or email</label>
+  <div class="input-group"><input class="form-control" id="identifier" name="identifier" required><button class="btn btn-forest" type="submit">Invite</button></div>
+</form>
+{% endif %}
+<div class="panel mb-3">
+  <table class="table mb-0"><thead><tr><th>Person</th><th>Role</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+    {% for row in members %}
+    <tr>
+      <td>{{ row.user.display_name }}</td>
+      <td>{{ row.get_role_display }}</td>
+      <td>{{ row.get_status_display }}</td>
+      <td>
+        {% if can_manage and row.status == "active" and row.user_id != user.id %}
+        <form method="post" action="{% url 'groups:member_action' group.pk row.user_id %}">{% csrf_token %}
+          <select name="role" aria-label="Role for {{ row.user.display_name }}">
+            <option value="admin">Admin</option><option value="member">Member</option><option value="viewer">Read-only</option>
+          </select>
+          <button class="btn btn-sm btn-outline-secondary" name="action" value="role" type="submit">Set role</button>
+          <button class="btn btn-sm btn-outline-danger" name="action" value="remove" type="submit">Remove</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody></table>
+</div>
+<section class="panel p-3 mb-3"><h2 class="h5">Pending invitations</h2>
+  {% for invite in invites %}
+  <div class="d-flex justify-content-between"><span>{% if invite.invitee %}{{ invite.invitee.display_name }}{% else %}{{ invite.email }}{% endif %}</span>
+    {% if can_manage %}<form method="post" action="{% url 'groups:invite_respond' invite.pk %}">{% csrf_token %}<button class="btn btn-link btn-sm" name="action" value="cancel" type="submit">Cancel</button></form>{% endif %}
+  </div>
+  {% empty %}<p class="text-secondary mb-0">None.</p>{% endfor %}
+</section>
+<section class="panel p-3"><h2 class="h5">Membership history</h2>
+  {% for event in events %}<p class="mb-1">{{ event.created_at|date:"j M Y" }} · {{ event.actor.display_name }} · {{ event.action }} · {{ event.user.display_name }}</p>{% empty %}<p class="text-secondary mb-0">No history yet.</p>{% endfor %}
+</section>
+{% endblock %}

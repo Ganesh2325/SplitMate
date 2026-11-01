@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Four friends dividing a shared bill">
+  <rect width="640" height="480" rx="28" fill="#143128"/>
+  <circle cx="520" cy="78" r="90" fill="#d9782f" opacity=".35"/>
+  <circle cx="90" cy="400" r="70" fill="#1f6f5b"/>
+  <rect x="168" y="86" width="304" height="308" rx="22" fill="#fffaf3"/>
+  <rect x="192" y="114" width="120" height="14" rx="7" fill="#1f6f5b"/>
+  <rect x="192" y="146" width="256" height="10" rx="5" fill="#e4ddd2"/>
+  <rect x="192" y="170" width="210" height="10" rx="5" fill="#e4ddd2"/>
+  <rect x="192" y="206" width="256" height="64" rx="14" fill="#f4f1ea"/>
+  <text x="212" y="234" fill="#17241f" font-family="Georgia, serif" font-size="18">Hotel</text>
+  <text x="360" y="234" fill="#1f6f5b" font-family="Georgia, serif" font-size="18">4,000</text>
+  <text x="212" y="256" fill="#5e6a64" font-family="Segoe UI, sans-serif" font-size="13">Split four ways</text>
+  <circle cx="214" cy="318" r="22" fill="#1f6f5b"/>
+  <circle cx="270" cy="318" r="22" fill="#d9782f"/>
+  <circle cx="326" cy="318" r="22" fill="#3d8f78"/>
+  <circle cx="382" cy="318" r="22" fill="#17241f"/>
+  <text x="198" y="368" fill="#17241f" font-family="Segoe UI, sans-serif" font-size="14">Each share 1,000</text>
+</svg>

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Friend requests · SplitMate{% endblock %}
+{% block content %}
+<h1 class="h3">Friend requests</h1>
+<div class="row g-4">
+  <div class="col-md-4"><div class="panel p-3"><h2 class="h5">Incoming</h2>
+    {% for row in incoming %}
+    <p>{{ row.requester.display_name }}</p>
+    <form method="post" action="{% url 'friends:respond' row.pk %}">{% csrf_token %}<button class="btn btn-forest btn-sm" name="action" value="accept" type="submit">Accept</button> <button class="btn btn-outline-secondary btn-sm" name="action" value="decline" type="submit">Decline</button></form>
+    {% empty %}<p class="text-secondary">None.</p>{% endfor %}
+  </div></div>
+  <div class="col-md-4"><div class="panel p-3"><h2 class="h5">Outgoing</h2>
+    {% for row in outgoing %}
+    <p>{{ row.addressee.display_name }}</p>
+    <form method="post" action="{% url 'friends:respond' row.pk %}">{% csrf_token %}<button class="btn btn-outline-secondary btn-sm" name="action" value="cancel" type="submit">Cancel</button></form>
+    {% empty %}<p class="text-secondary">None.</p>{% endfor %}
+  </div></div>
+  <div class="col-md-4"><div class="panel p-3"><h2 class="h5">Email invitations</h2>
+    {% for invite in email_invites %}
+    <p>{{ invite.inviter.display_name }} invited {{ invite.email }}</p>
+    <form method="post" action="{% url 'friends:email_accept' invite.pk %}">{% csrf_token %}<button class="btn btn-forest btn-sm" type="submit">Accept</button></form>
+    {% empty %}<p class="text-secondary">None.</p>{% endfor %}
+  </div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Settings · {{ group.name }}{% endblock %}
+{% block content %}
+<h1 class="h3">{{ group.name }} settings</h1>
+{% if can_manage %}
+<form class="panel p-4 mb-3" method="post" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="action" value="save">
+  <label class="form-label" for="name">Name</label><input class="form-control mb-3" id="name" name="name" value="{{ group.name }}" required>
+  <label class="form-label" for="description">Description</label><textarea class="form-control mb-3" id="description" name="description">{{ group.description }}</textarea>
+  <label class="form-label" for="group_type">Type</label>
+  <select class="form-select mb-3" id="group_type" name="group_type">{% for value, label in types %}<option value="{{ value }}" {% if group.group_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <label class="form-label" for="currency">Currency</label>
+  <select class="form-select mb-3" id="currency" name="currency">{% for value, label in currencies %}<option value="{{ value }}" {% if group.currency == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <p class="small text-secondary">Currency can change only before the group has expenses or settlements. Historical amounts are never reinterpreted.</p>
+  <label class="form-label" for="default_split_method">Default split</label>
+  <select class="form-select mb-3" id="default_split_method" name="default_split_method">{% for value, label in methods %}<option value="{{ value }}" {% if group.default_split_method == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <div class="form-check mb-3"><input class="form-check-input" id="simplify_debts" type="checkbox" name="simplify_debts" {% if group.simplify_debts %}checked{% endif %}><label class="form-check-label" for="simplify_debts">Suggest simplified repayments</label></div>
+  <label class="form-label" for="image">Replace image</label><input class="form-control mb-3" id="image" type="file" name="image" accept="image/jpeg,image/png,image/webp">
+  <button class="btn btn-forest" type="submit">Save settings</button>
+</form>
+{% else %}<p>You can view this group. Only an owner or admin can change settings.</p>{% endif %}
+<form class="d-inline" method="post" action="{% url 'groups:leave' group.pk %}" data-confirm="Leave this group?">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Leave group</button></form>
+{% if is_owner %}
+<form class="d-inline" method="post" action="{% url 'groups:archive' group.pk %}">{% csrf_token %}
+  {% if group.is_archived %}<button class="btn btn-outline-secondary" name="action" value="restore" type="submit">Restore</button>{% else %}<button class="btn btn-outline-secondary" name="action" value="archive" type="submit">Archive</button>{% endif %}
+  <button class="btn btn-outline-danger" name="action" value="delete" type="submit">Delete if empty</button>
+</form>
+{% endif %}
+{% endblock %}

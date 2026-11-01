@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}Budgets · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3"><h1 class="h3">Budgets</h1><a class="btn btn-amber" href="{% url 'budgets:add' %}">New budget</a></div>
+<p>A personal budget tracks your allocated shares. A group budget tracks each expense total once.</p>
+{% for row in rows %}
+<article class="panel p-3 mb-3">
+  <div class="d-flex justify-content-between"><h2 class="h5">{{ row.budget.name }}</h2><span>{% if row.budget.is_active %}Active{% else %}Paused{% endif %}</span></div>
+  <p class="mb-1">{{ row.budget.get_scope_display }} · {{ row.budget.get_period_display }}{% if row.budget.group %} · {{ row.budget.group.name }}{% endif %}{% if row.budget.category %} · {{ row.budget.category.name }}{% endif %}</p>
+  <p>Spent {{ row.progress.spent|money:row.budget.currency }} of {{ row.budget.limit_amount|money:row.budget.currency }}. Remaining {{ row.progress.remaining|money:row.budget.currency }}. Utilization {{ row.progress.percent }}%.</p>
+  <div class="progress mb-2" role="progressbar" aria-valuenow="{{ row.progress.percent }}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width: {% if row.progress.percent > 100 %}100{% else %}{{ row.progress.percent }}{% endif %}%"></div></div>
+  <form method="post" action="{% url 'budgets:toggle' row.budget.pk %}">{% csrf_token %}<button class="btn btn-outline-secondary btn-sm" type="submit">{% if row.budget.is_active %}Pause{% else %}Resume{% endif %}</button></form>
+</article>
+{% empty %}<div class="panel">{% include "includes/empty.html" with empty_message="No budgets yet." empty_url="/budgets/add/" empty_action="Create a budget" %}</div>{% endfor %}
+{% endblock %}

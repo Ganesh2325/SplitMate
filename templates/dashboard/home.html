@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}Dashboard · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Dashboard</h1>
+  <span class="text-secondary">Figures in {{ currency }}</span>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">You owe</div><div class="stat-value money-negative">{{ totals.owe|money:currency }}</div></div></div>
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">Owed to you</div><div class="stat-value money-positive">{{ totals.owed|money:currency }}</div></div></div>
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">Net balance</div><div class="stat-value {% if totals.net > 0 %}money-positive{% elif totals.net < 0 %}money-negative{% endif %}">{% balance_phrase totals.net %} {{ totals.net|abs_value|money:currency }}</div></div></div>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-md-6"><div class="panel p-3"><div class="text-secondary">Your share this month</div><div class="stat-value">{{ my_share|money:currency }}</div><div class="small text-secondary">What was allocated to you, not what the groups spent.</div></div></div>
+  <div class="col-md-6"><div class="panel p-3"><div class="text-secondary">Group spending this month</div><div class="stat-value">{{ group_spend|money:currency }}</div><div class="small text-secondary">Full expense totals in your groups, counted once.</div></div></div>
+</div>
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a class="btn btn-amber" href="{% url 'expenses:add' %}">Add expense</a>
+  <a class="btn btn-outline-secondary" href="{% url 'groups:create' %}">Create group</a>
+  <a class="btn btn-outline-secondary" href="{% url 'friends:add' %}">Add friend</a>
+  <a class="btn btn-outline-secondary" href="{% url 'settlements:settle' %}">Settle up</a>
+  <a class="btn btn-outline-secondary" href="{% url 'settlements:balances' %}">Balances</a>
+  <a class="btn btn-outline-secondary" href="{% url 'reports:home' %}">Reports</a>
+</div>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <section class="panel p-3 mb-4">
+      <h2 class="h5">Recent expenses</h2>
+      {% if recent %}
+      <ul class="list-group list-group-flush">
+        {% for expense in recent %}
+        <li class="list-group-item bg-transparent d-flex justify-content-between">
+          <a href="{% url 'expenses:detail' expense.pk %}">{{ expense.description }}</a>
+          <span>{{ expense.amount|money:expense.currency }} <span class="text-secondary">{{ expense.expense_date|date:"j M" }}</span></span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="empty-state mb-0">No expenses yet.</p>{% endif %}
+    </section>
+    <section class="panel p-3">
+      <h2 class="h5">Spending</h2>
+      {{ chart|json_script:"chart-data" }}
+      <canvas data-chart="chart-data" data-kind="line" height="120" aria-label="Monthly share"></canvas>
+    </section>
+  </div>
+  <div class="col-lg-5">
+    <section class="panel p-3 mb-4">
+      <h2 class="h5">Balances</h2>
+      {% if you_are_owed %}
+        {% for line in you_are_owed %}<p class="mb-1">{{ line.label }} owes you {{ line.net|money:line.currency }} <span class="badge text-bg-light">{{ line.kind }}</span></p>{% endfor %}
+      {% endif %}
+      {% if you_owe %}
+        {% for line in you_owe %}<p class="mb-1">You owe {{ line.label }} {{ line.net|abs_value|money:line.currency }} <span class="badge text-bg-light">{{ line.kind }}</span></p>{% endfor %}
+      {% endif %}
+      {% if not you_owe and not you_are_owed %}<p class="empty-state mb-0">Nothing outstanding in {{ currency }}.</p>{% endif %}
+      <a href="{% url 'settlements:balances' %}">All balances</a>
+    </section>
+    <section class="panel p-3">
+      <h2 class="h5">Activity</h2>
+      {% for item in activity %}
+      <p class="mb-2"><strong>{{ item.actor.display_name }}</strong> {{ item.summary }} <span class="text-secondary">{{ item.created_at|timesince }} ago</span></p>
+      {% empty %}<p class="empty-state mb-0">No activity yet.</p>{% endfor %}
+    </section>
+  </div>
+</div>
+{% endblock %}

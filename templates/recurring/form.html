@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}New recurring expense · SplitMate{% endblock %}
+{% block content %}
+<div class="panel p-4" style="max-width: 720px;">
+  <h1 class="h3">Schedule a recurring expense</h1>
+  <p>You pay the full amount. It is split equally among the people you select. Nothing is posted until the schedule runs.</p>
+  <form method="get" class="mb-3">
+    <label class="form-label" for="preview-group">Show people for a group</label>
+    <select class="form-select" id="preview-group" name="group" onchange="this.form.submit()">
+      <option value="">Friends</option>
+      {% for group in groups %}<option value="{{ group.id }}" {% if selected_group == group.id|stringformat:"s" %}selected{% endif %}>{{ group.name }}</option>{% endfor %}
+    </select>
+  </form>
+  <form method="post">{% csrf_token %}
+    <label class="form-label" for="description">Description</label><input class="form-control mb-3" id="description" name="description" required>
+    <label class="form-label" for="amount">Amount</label><input class="form-control mb-3" id="amount" name="amount" required inputmode="decimal">
+    <label class="form-label" for="frequency">Frequency</label><select class="form-select mb-3" id="frequency" name="frequency">{% for value, label in frequencies %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+    <label class="form-label" for="start_date">Start</label><input class="form-control mb-3" id="start_date" type="date" name="start_date" value="{{ today|date:'Y-m-d' }}" required>
+    <label class="form-label" for="end_date">End</label><input class="form-control mb-3" id="end_date" type="date" name="end_date">
+    <label class="form-label" for="group">Group</label>
+    <select class="form-select mb-3" id="group" name="group"><option value="">Personal</option>{% for group in groups %}<option value="{{ group.id }}" {% if selected_group == group.id|stringformat:"s" %}selected{% endif %}>{{ group.name }}</option>{% endfor %}</select>
+    <label class="form-label" for="category">Category</label><select class="form-select mb-3" id="category" name="category" required>{% for category in categories %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}</select>
+    <fieldset class="mb-3"><legend class="form-label">Split equally with</legend>
+      {% for person in people %}<div class="form-check"><input class="form-check-input" type="checkbox" name="participant" value="{{ person.id }}" id="p{{ person.id }}" {% if person.id == user.id %}checked{% endif %}><label class="form-check-label" for="p{{ person.id }}">{{ person.display_name }}</label></div>{% endfor %}
+    </fieldset>
+    <label class="form-label" for="notes">Notes</label><textarea class="form-control mb-3" id="notes" name="notes"></textarea>
+    <button class="btn btn-amber" type="submit">Save schedule</button>
+  </form>
+</div>
+{% endblock %}

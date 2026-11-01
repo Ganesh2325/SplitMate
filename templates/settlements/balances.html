@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}Balances · SplitMate{% endblock %}
+{% block content %}
+<h1 class="h3">Balances</h1>
+<p>Group expenses, personal expenses, and informal loans are listed separately so the same bill is not counted twice. The totals below add those lines for each currency.</p>
+{% for currency, bucket in totals.items %}
+<div class="row g-3 mb-3">
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">You owe · {{ currency }}</div><div class="stat-value money-negative">{{ bucket.owe|money:currency }}</div></div></div>
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">Owed to you · {{ currency }}</div><div class="stat-value money-positive">{{ bucket.owed|money:currency }}</div></div></div>
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">Net · {{ currency }}</div><div class="stat-value">{% balance_phrase bucket.net %} {{ bucket.net|abs_value|money:currency }}</div></div></div>
+</div>
+{% empty %}<p>No balances yet.</p>{% endfor %}
+<div class="panel mb-3">
+  <table class="table mb-0"><thead><tr><th>Where</th><th>Kind</th><th>Status</th><th>Amount</th></tr></thead>
+  <tbody>
+    {% for line in lines %}
+    <tr>
+      <td>{% if line.kind == "group" %}<a href="{% url 'groups:balances' line.group_id %}">{{ line.label }}</a>{% elif line.other_id %}<a href="{% url 'settlements:with' line.other_id %}?currency={{ line.currency }}">{{ line.label }}</a>{% else %}{{ line.label }}{% endif %}</td>
+      <td>{{ line.kind }}</td>
+      <td>{% if line.net > 0 %}Owes you{% elif line.net < 0 %}You owe{% else %}Settled{% endif %}</td>
+      <td>{{ line.net|abs_value|money:line.currency }}</td>
+    </tr>
+    {% empty %}<tr><td colspan="4">Nothing outstanding.</td></tr>{% endfor %}
+  </tbody></table>
+</div>
+<section class="panel p-3"><h2 class="h5">Recent repayments</h2>
+  {% for item in settlements %}<p><a href="{% url 'settlements:detail' item.pk %}">{{ item.payer.display_name }} → {{ item.recipient.display_name }}</a> {{ item.amount|money:item.currency }} · {{ item.get_status_display }}</p>{% empty %}<p class="mb-0 text-secondary">None yet.</p>{% endfor %}
+  <a href="{% url 'settlements:history' %}">Full history</a>
+</section>
+{% endblock %}

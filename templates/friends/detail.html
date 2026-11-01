@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}{{ other.display_name }} · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+  <div><h1 class="h3">{{ other.display_name }}</h1><p class="text-secondary mb-0">@{{ other.username }} · {{ other.preferred_currency }}{% if is_friend %} · Friends{% endif %}</p></div>
+  {% if is_friend %}
+  <form method="post" action="{% url 'friends:remove' other.pk %}" data-confirm="Remove this friend? Expenses and balances stay.">{% csrf_token %}<button class="btn btn-outline-danger" type="submit">Remove friend</button></form>
+  {% endif %}
+  <form method="post" action="{% url 'friends:block' other.pk %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit">Block</button></form>
+</div>
+<section class="panel p-3 mb-3">
+  <h2 class="h5">Balances</h2>
+  {% for row in balances %}
+  <p>{% balance_phrase row.combined %} {{ row.combined|abs_value|money:row.currency }} in {{ row.currency }}. Shared expenses {{ row.expense_net|money:row.currency }}. Loans {{ row.loan_net|money:row.currency }}.</p>
+  <ul>{% for line in row.lines %}<li><a href="{{ line.path }}">{{ line.date|date:"j M Y" }}</a> {{ line.label }} {{ line.effect|money:row.currency }}{% if line.void %} (void){% endif %}</li>{% endfor %}</ul>
+  {% empty %}<p>No shared balance.</p>{% endfor %}
+  <a class="btn btn-amber" href="{% url 'settlements:settle' %}?recipient={{ other.pk }}">Record a repayment</a>
+</section>
+<section class="panel p-3 mb-3"><h2 class="h5">Shared expenses</h2>
+  {% for expense in shared %}<p><a href="{% url 'expenses:detail' expense.pk %}">{{ expense.description }}</a> {{ expense.amount|money:expense.currency }} · {{ expense.expense_date|date:"j M Y" }} · {{ expense.get_status_display }}</p>{% empty %}<p class="text-secondary">None yet.</p>{% endfor %}
+</section>
+<section class="panel p-3"><h2 class="h5">Settlements</h2>
+  {% for item in settlements %}<p><a href="{% url 'settlements:detail' item.pk %}">{{ item.payer.display_name }} paid {{ item.recipient.display_name }}</a> {{ item.amount|money:item.currency }} on {{ item.settled_on|date:"j M Y" }} · {{ item.get_status_display }}</p>{% empty %}<p class="text-secondary">None yet.</p>{% endfor %}
+</section>
+{% endblock %}

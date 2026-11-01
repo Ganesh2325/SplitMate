@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}Balances · {{ group.name }}{% endblock %}
+{% block content %}
+<h1 class="h3">{{ group.name }} balances</h1>
+<p class="text-secondary">Positive means that person should receive money. Negative means they owe money. These figures are calculated from expenses and recorded repayments.</p>
+<div class="table-responsive panel mb-3">
+  <table class="table mb-0"><thead><tr><th>Member</th><th>Net</th><th>Status</th></tr></thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td>{{ row.user.display_name }}</td>
+      <td class="{% if row.net > 0 %}money-positive{% elif row.net < 0 %}money-negative{% endif %}">{{ row.net|money:group.currency }}</td>
+      <td>{% if row.net > 0 %}Should receive{% elif row.net < 0 %}Owes{% else %}Settled{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody></table>
+</div>
+<section class="panel p-3 mb-3">
+  <h2 class="h5">Suggested repayments</h2>
+  <p>These are suggestions. Recording one is a separate step and does not happen automatically.</p>
+  {% if simplify_error %}<div class="alert alert-warning">{{ simplify_error }}</div>{% endif %}
+  {% for item in suggestions %}
+  <p>{{ users|get_item:item.debtor_id }} pays {{ users|get_item:item.creditor_id }} {{ item.amount|money:item.currency }}.
+    <a href="{% url 'settlements:settle' %}?payer={{ item.debtor_id }}&recipient={{ item.creditor_id }}&amount={{ item.amount }}&currency={{ item.currency }}&group={{ group.pk }}">Record this repayment</a>
+  </p>
+  {% empty %}<p class="text-secondary">{% if not simplify_error %}No suggested payments.{% endif %} {% if not group.simplify_debts %}<a href="?simplify=1">Calculate a plan anyway</a>{% endif %}</p>{% endfor %}
+</section>
+<section class="panel p-3 mb-3"><h2 class="h5">How your balance is made</h2>
+  {% for line in explanation %}<p class="mb-1"><a href="{{ line.path }}">{{ line.date|date:"j M Y" }}</a> {{ line.label }} {{ line.effect|money:group.currency }}{% if line.void %} · excluded{% endif %}</p>{% empty %}<p class="text-secondary">No transactions for you yet.</p>{% endfor %}
+</section>
+<section class="panel p-3"><h2 class="h5">Recorded settlements</h2>
+  {% for item in settlements %}<p><a href="{% url 'settlements:detail' item.pk %}">{{ item.payer.display_name }} → {{ item.recipient.display_name }}</a> {{ item.amount|money:item.currency }} · {{ item.get_status_display }}</p>{% empty %}<p class="text-secondary mb-0">None yet.</p>{% endfor %}
+</section>
+{% endblock %}

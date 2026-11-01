@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}Repayment · SplitMate{% endblock %}
+{% block content %}
+<h1 class="h3">{{ settlement.payer.display_name }} paid {{ settlement.recipient.display_name }}</h1>
+<p>{{ settlement.amount|money:settlement.currency }} on {{ settlement.settled_on|date:"j M Y" }} by {{ settlement.get_method_display }}.</p>
+<p>Status: {{ settlement.get_status_display }}{% if settlement.is_advance %} · Recorded as an advance{% endif %}{% if settlement.group %} · {{ settlement.group.name }}{% else %} · Personal{% endif %}</p>
+{% if settlement.reference %}<p>Reference: {{ settlement.reference }}</p>{% endif %}
+{% if settlement.note %}<p>{{ settlement.note }}</p>{% endif %}
+<p class="text-secondary">Recorded by {{ settlement.created_by.display_name }} on {{ settlement.created_at|date:"j M Y H:i" }}. This label does not mean a bank confirmed the transfer.</p>
+{% if settlement.status == "reversed" %}<div class="alert alert-warning">Reversed{% if settlement.reversal %}: {{ settlement.reversal.reason }}{% endif %}</div>{% endif %}
+{% if settlement.status == "recorded" %}
+<form method="post" action="{% url 'settlements:reverse' settlement.pk %}" data-confirm="Reverse this repayment? The original record stays.">{% csrf_token %}
+  <label class="form-label" for="reason">Reason</label>
+  <input class="form-control mb-2" id="reason" name="reason" required>
+  <button class="btn btn-outline-danger" type="submit">Reverse repayment</button>
+</form>
+{% endif %}
+{% endblock %}

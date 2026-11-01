@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Settings · SplitMate{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="panel p-4">
+      <h1 class="h3">Notification preferences</h1>
+      <form method="post">{% csrf_token %}{% include "includes/form_fields.html" %}<button class="btn btn-forest" type="submit">Save preferences</button></form>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="panel p-4">
+      <h2 class="h5">Security</h2>
+      <p><a href="{% url 'accounts:password' %}">Change password</a></p>
+      <p><a href="{% url 'accounts:deactivate' %}">Deactivate account</a></p>
+      <p class="mb-0"><a href="{% url 'accounts:delete' %}">Delete and anonymize account</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

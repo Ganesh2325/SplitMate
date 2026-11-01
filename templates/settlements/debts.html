@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}Informal debts · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3"><h1 class="h3">Informal debts</h1><a class="btn btn-amber" href="{% url 'settlements:debt_add' %}">Record a loan</a></div>
+<p>Loans are separate from shared expenses. A group settlement does not reduce a loan.</p>
+<div class="panel">
+  {% for row in rows %}
+  <p class="border-bottom p-3 mb-0"><a href="{% url 'settlements:debt_detail' row.debt.pk %}">{{ row.debt.creditor.display_name }} lent {{ row.debt.debtor.display_name }}</a> {{ row.debt.amount|money:row.debt.currency }} · outstanding {{ row.outstanding|money:row.debt.currency }} · {{ row.debt.get_status_display }}</p>
+  {% empty %}{% include "includes/empty.html" with empty_message="No loans recorded." empty_url="/debts/add/" empty_action="Record a loan" %}{% endfor %}
+</div>
+{% endblock %}

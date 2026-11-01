@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 360" role="img" aria-label="A suggested repayment from one person to another">
+  <rect width="520" height="360" rx="24" fill="#1b2a24"/>
+  <circle cx="130" cy="160" r="54" fill="#d9782f"/>
+  <circle cx="390" cy="160" r="54" fill="#1f6f5b"/>
+  <text x="104" y="240" fill="#fffaf3" font-family="Segoe UI, sans-serif" font-size="18">Priya</text>
+  <text x="358" y="240" fill="#fffaf3" font-family="Segoe UI, sans-serif" font-size="18">Ganesh</text>
+  <path d="M196 150h150" stroke="#fffaf3" stroke-width="6" stroke-linecap="round"/>
+  <path d="M326 132l28 18-28 18" fill="none" stroke="#fffaf3" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="176" y="268" width="168" height="48" rx="14" fill="#d9782f"/>
+  <text x="206" y="298" fill="#1b1208" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">Pay 1,000</text>
+</svg>

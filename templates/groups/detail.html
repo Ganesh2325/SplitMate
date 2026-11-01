@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load splitmate %}
+{% block title %}{{ group.name }} · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h3">{{ group.name }}</h1>
+    <p class="text-secondary mb-0">{{ group.get_group_type_display }} · {{ group.currency }} · {{ members|length }} members{% if group.is_archived %} · Archived{% endif %}</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    {% if membership.role != "viewer" and not group.is_archived %}<a class="btn btn-amber" href="{% url 'expenses:add' %}?group={{ group.pk }}">Add expense</a>{% endif %}
+    <a class="btn btn-outline-secondary" href="{% url 'groups:balances' group.pk %}">Balances</a>
+    <a class="btn btn-outline-secondary" href="{% url 'groups:members' group.pk %}">Members</a>
+    <a class="btn btn-outline-secondary" href="{% url 'groups:settings' group.pk %}">Settings</a>
+  </div>
+</div>
+{% if group.description %}<p>{{ group.description }}</p>{% endif %}
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">Total spending</div><div class="stat-value">{{ total|money:group.currency }}</div></div></div>
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">Your role</div><div class="stat-value h4">{{ membership.get_role_display }}</div></div></div>
+  <div class="col-md-4"><div class="panel p-3"><div class="text-secondary">Simplify debts</div><div class="stat-value h4">{% if group.simplify_debts %}On{% else %}Off{% endif %}</div></div></div>
+</div>
+<section class="panel p-3">
+  <div class="d-flex justify-content-between"><h2 class="h5">Recent expenses</h2><a href="{% url 'groups:expenses' group.pk %}">All expenses</a></div>
+  {% for expense in recent %}
+  <p class="mb-1"><a href="{% url 'expenses:detail' expense.pk %}">{{ expense.description }}</a> {{ expense.amount|money:expense.currency }} · {{ expense.expense_date|date:"j M Y" }} · {{ expense.get_status_display }}</p>
+  {% empty %}<p class="empty-state">No expenses in this group yet.</p>{% endfor %}
+</section>
+{% endblock %}

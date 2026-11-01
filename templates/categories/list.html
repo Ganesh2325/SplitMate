@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Categories · SplitMate{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3"><h1 class="h3">Categories</h1><a class="btn btn-amber" href="{% url 'categories:add' %}">Add your own</a></div>
+<form class="mb-3" method="get"><label class="visually-hidden" for="q">Search categories</label><input class="form-control" id="q" name="q" value="{{ query }}" placeholder="Search categories"></form>
+<div class="row g-2">
+  {% for category in categories %}
+  <div class="col-md-4"><div class="panel p-3 d-flex justify-content-between"><span><i class="bi {{ category.icon }}"></i> {{ category.name }}</span>{% if category.owner_id == user.id and not category.is_system %}<a href="{% url 'categories:delete' category.pk %}">Delete</a>{% endif %}</div></div>
+  {% empty %}<p>No categories match.</p>{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Delete category · SplitMate{% endblock %}
+{% block content %}
+<div class="panel p-4" style="max-width: 520px;"><h1 class="h3">Delete {{ category.name }}?</h1>
+<p>Categories already used by an expense are kept.</p>
+<form method="post">{% csrf_token %}<button class="btn btn-outline-danger" type="submit">Delete</button> <a href="{% url 'categories:list' %}">Cancel</a></form>
+</div>
+{% endblock %}
