@@ -1,0 +1,12 @@
+---
+description: Remind the user to push SplitMate to GitHub after every response
+alwaysApply: true
+---
+
+# GitHub push reminder
+
+At the end of every response, add one short reminder that the user still needs to push this project to GitHub:
+
+https://github.com/Ganesh2325/SplitMate
+
+The user will do the push. Do not commit or push unless they explicitly ask in that message.

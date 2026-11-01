@@ -1,86 +1,112 @@
 # SplitMate
 
-SplitMate is a shared-expense application for friends, roommates, families, and trip groups. People record who paid, how a bill was divided, and which repayments have been made. Balances are calculated from those records.
+SplitMate keeps a clear record of money that people share. It answers four questions:
 
-It is for anyone who needs a clear answer to: who paid, who shared the cost, who owes whom, and what changed after an edit, a void, or a reversed repayment.
+- Who paid?
+- Who was supposed to share the cost?
+- Who still owes money?
+- What changed if someone edits, cancels, or reverses a record?
 
-## Capabilities
+It is for trips, roommates, students, families, and small teams. SplitMate does not send money. It only remembers what you enter, then shows the balance.
 
-- Accounts with registration, login, logout, email verification, password reset, profile, preferences, deactivation, and anonymized deletion.
-- Friends, blocks, and email invitations.
-- Groups with owner, admin, member, and read-only roles.
-- Expenses with multiple payers and five split methods: equal, exact, percentage, shares, and itemized.
-- Group, friend, and informal-loan balances that are not mixed together.
-- Recorded repayments, reversals, and a deterministic debt-simplification suggestion.
-- Categories, tags, search, filters, reports, CSV, Excel, and PDF export.
-- Comments, receipt uploads, recurring expenses, budgets, templates, and an audit log.
+## How a shared bill works
 
-## Stack
+1. **Record who paid.** One person can pay, or several people can pay parts of the same bill.
+2. **Choose the split.** Divide the total equally, by exact amounts, by percentages, by shares, or item by item. SplitMate checks that the shares add up to the total.
+3. **Settle when you are ready.** SplitMate can suggest who should pay whom. Nothing is recorded as paid until you confirm it yourself.
 
-- Python 3.14 and Django 6.1
-- Django templates, Bootstrap 5, vanilla JavaScript, Chart.js
-- SQLite for local development, PostgreSQL when `DB_ENGINE=postgres`
-- Decimal money only. The server calculates shares and balances.
+A **positive** balance means that person should receive money. A **negative** balance means that person owes money. **Zero** means that part is settled.
 
-## Install
+## A short example
+
+Four friends go on a weekend trip. The bills are:
+
+| What | Amount | Who paid |
+| --- | ---: | --- |
+| Hotel | 4,000 | Ganesh |
+| Food | 2,000 | Rahul |
+| Transport | 1,000 | Priya |
+| Tickets | 1,000 | Arjun |
+
+The total is 8,000. Split equally, each person owes 2,000.
+
+- Ganesh paid 4,000 and owes 2,000, so Ganesh should receive **2,000**.
+- Rahul paid 2,000 and owes 2,000, so Rahul is **settled**.
+- Priya paid 1,000 and owes 2,000, so Priya owes **1,000**.
+- Arjun paid 1,000 and owes 2,000, so Arjun owes **1,000**.
+
+The four results add up to zero. That is how you know the record is complete.
+
+## What you can do
+
+- Create an account, then sign in with the same username and password.
+- Reset a forgotten password from the login page. The reset message is sent to the email on the account.
+- Add friends and create groups. A group can have an owner, an admin, a member, or a read-only person.
+- Add expenses, comments, and receipt photos.
+- See balances for a group, for a friend, and for an informal loan separately. The same bill is not counted twice.
+- Record a repayment by cash, UPI, bank transfer, or Paytm. You can reverse it if it was a mistake. The original row stays in the history.
+- Keep categories, budgets, recurring bills, and expense templates.
+- Open reports and download them as CSV, Excel, or PDF.
+
+## What SplitMate does not do
+
+- It does not move or check money. A repayment is your note that the money changed hands.
+- It does not read receipts into an expense. Receipt scanning is turned off.
+- It does not create recurring bills by itself. Someone has to run the recurring command, or a scheduler has to run it.
+- One group uses one currency. Rupees and dollars are never added together.
+
+## Use it in the browser
+
+1. Open the home page.
+2. Choose **Create account**. Enter your name, username, email, and a password of at least 6 characters. Agree to the terms and privacy policy.
+3. After the account is saved, you land on the login page. You are not signed in yet.
+4. Sign in with the same username and password. Your dashboard opens.
+5. From the dashboard you can add an expense, create a group, add a friend, or settle up.
+
+If you forget the password, choose **Forgot password**, enter the account email, and open the link in the message.
+
+## Run it on your computer
+
+You need Python 3.14. In PowerShell, from this folder:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 copy .env.example .env
 .\.venv\Scripts\python.exe manage.py migrate
-.\.venv\Scripts\python.exe manage.py createsuperuser
 .\.venv\Scripts\python.exe manage.py runserver
 ```
 
-Open http://127.0.0.1:8000/.
+Then open http://127.0.0.1:8000/. If that address is already used by another program, start it on another port:
 
-With `DJANGO_DEBUG=true` you can load the Weekend Trip example:
+```powershell
+.\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8001
+```
+
+Until you connect a real mailbox, password and verification emails are printed in the server window. The rest of the app still works.
+
+To load the weekend-trip example while debug is on:
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py seed_demo
 ```
 
-Log in as `ganesh` / `ValidPass123`. The same password is set for `rahul`, `priya`, and `arjun` when those accounts are created by the command. The command refuses to run when debug is off, and it does not replace expenses that are already in that group.
+Sign in as `ganesh` with password `ValidPass123`. The same password is used for `rahul`, `priya`, and `arjun` when that command creates them. The command will not replace expenses that are already in the Weekend Trip group, and it will not run when debug is off.
 
-Email uses the console backend in development. Verification and reset messages are printed in the server terminal. The site stays usable when mail cannot be delivered.
+## For someone setting up the code
 
-## Accounting
+SplitMate is a Django application. Pages are Django templates. Styling uses Bootstrap 5. Charts use Chart.js. Money is stored as decimal numbers, and the server calculates every share and balance.
 
-Positive balance means that person should receive money. Negative means they owe money.
+Local development uses SQLite. Set `DB_ENGINE=postgres` in `.env` to use PostgreSQL. Copy `.env.example` to `.env` and keep `.env` private. It is not part of the git repository.
 
-```text
-net = expense payments − expense shares + repayments made − repayments received
-```
-
-A repayment increases the payer's net and decreases the recipient's net. That matches a payment toward a debt: the person who owed money moves toward zero, and the person who was owed money is owed less.
-
-Group expenses stay on the group balance. Expenses with no group use a pairwise split between the people on that bill. Informal loans are a separate line and are reduced only by loan payments, not by expense settlements.
-
-Each group uses one currency. The currency cannot change after the group has expenses or settlements. Amounts in different currencies are never added together. `ExchangeRate` rows can be stored, and they are not applied to historical group books.
-
-Debt simplification is a deterministic greedy match of the largest remaining creditor and debtor. It preserves every net. It does not claim to find the smallest possible number of payments in every case. A suggestion does not record a payment until someone submits the settlement form.
-
-The expense list filter “my result” compares what you paid on that bill with your share. A later repayment does not change that filter. Outstanding balances are on the balance pages.
-
-Voids and settlement reversals keep the original rows and remove them from the active balance.
-
-## Data
-
-Main records: user, friendship, group, membership, invitation, expense, payer, share, item, comment, attachment, settlement, settlement reversal, informal debt, category, notification, audit log, recurring expense, occurrence, budget, template, and export job.
-
-Financial foreign keys use `PROTECT`. Deleting an account anonymizes the user (`deleted-<id>`), sets an unusable password, and refuses while that user is the sole owner of a group that still has other members. Sole-owner groups with no other members are archived.
-
-Migrations:
+Useful checks:
 
 ```powershell
-.\.venv\Scripts\python.exe manage.py makemigrations
-.\.venv\Scripts\python.exe manage.py migrate
+.\.venv\Scripts\python.exe manage.py check
+.\.venv\Scripts\python.exe manage.py test
 ```
 
-Backup a SQLite file by copying `db.sqlite3` while the server is stopped. For PostgreSQL, use `pg_dump` and `pg_restore`. Media files under `media/` must be backed up with the database because receipts are not stored in the database itself.
-
-## Commands
+Other commands:
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py process_recurring_expenses
@@ -89,54 +115,10 @@ Backup a SQLite file by copying `db.sqlite3` while the server is stopped. For Po
 .\.venv\Scripts\python.exe manage.py reconcile_balances
 ```
 
-`process_recurring_expenses` is safe to run more than once. Each scheduled date has one occurrence row, and the generated expense uses a stable token. There is no Celery worker. Schedule the command with the operating system or a host scheduler if you want it to run unattended. Nothing in the request path waits on that command.
+`process_recurring_expenses` is safe to run more than once on the same day. It will not create the same bill twice.
 
-## Tests
+For a public server, set `DJANGO_DEBUG=false`, a long `DJANGO_SECRET_KEY`, and your real host name in `DJANGO_ALLOWED_HOSTS`. Use HTTPS before turning on `ENABLE_HSTS`. Staff can open `/admin/`. Change expenses and repayments on the site, not by typing amounts directly in the admin.
 
-```powershell
-.\.venv\Scripts\python.exe manage.py check
-.\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run
-.\.venv\Scripts\python.exe manage.py test
-```
+`GET /health/` checks that the database can answer a simple query.
 
-The suite covers split rounding, the Weekend Trip balances, edits, voids, settlement reversal, duplicate settlement tokens, separate currencies, registration, page rendering, friend expenses, receipt access, viewer restrictions, recurring duplicate prevention, budget shares, and CSV formula quoting.
-
-SQLite tests do not prove PostgreSQL row-locking behavior. Settlement recording uses `select_for_update` inside a transaction; confirm concurrent behavior on PostgreSQL before relying on it in production.
-
-## Production
-
-Set `DJANGO_DEBUG=false`, a long `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, and `DB_ENGINE=postgres`. Put the app behind HTTPS and set `ENABLE_HSTS=true` only after HTTPS works. Set `CSRF_TRUSTED_ORIGINS` to the public origin.
-
-```powershell
-.\.venv\Scripts\python.exe manage.py collectstatic --noinput
-```
-
-WhiteNoise serves collected files. Gunicorn can serve the app with `gunicorn config.wsgi:application`. Receipts are downloaded through an authenticated view, not a public media URL. Configure SMTP with the email variables in `.env.example` if you want messages to leave the machine. `REDIS_URL` is optional; without it the cache is in-process memory.
-
-`Dockerfile` and `docker-compose.yml` are included for a local PostgreSQL layout. They were not executed in this workspace, so treat them as a starting point and run them in your own environment before relying on them.
-
-Health check: `GET /health/` runs `SELECT 1`.
-
-Logging uses the `splitmate` logger configured in settings. Do not put passwords or reset tokens in audit rows. The application does not store them there.
-
-## Admin
-
-`/admin/` is limited to staff users. Expense amounts, settlements, revisions, and audit rows are read-only there so a direct edit does not bypass the accounting services. Create and change financial records through the site.
-
-## Limitations
-
-- Recording cash, UPI, bank transfer, or Paytm stores a label. SplitMate does not move or verify money.
-- Receipt OCR is off unless `ENABLE_OCR=true` and `pytesseract` is installed. A scan never saves an expense. `pytesseract` is not installed in this environment, and OCR was not verified.
-- There is no Celery or Redis requirement. Recurring expenses and reminders run only when the management commands run.
-- The interface is English.
-- Bootstrap, Bootstrap Icons, and Chart.js are loaded from a CDN.
-- Docker Compose was not run here.
-- Cross-currency settlement inside one group is not implemented. Keep each group in one currency.
-
-## Requirement status
-
-Implemented and covered by automated tests: authentication, friends, groups and roles, all five split methods, balances, settlements and reversals, debt simplification, the Weekend Trip scenario, edits and voids, recurring duplicate prevention, budgets, receipt access control, CSV formula protection, and the main pages rendering.
-
-Implemented with service and page support, with less direct test coverage: comments, notifications, activity, templates, saved preferences, informal debts, reports and charts, Excel and PDF export, categories, and audit logging.
-
-Not claimed as working here: live payments, OCR, unattended scheduling, and the Docker stack.
+Docker files are included as a starting point. They were not run in this project, so try them in your own environment before you rely on them.
