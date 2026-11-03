@@ -1,9 +1,12 @@
 from datetime import timedelta
+from email.message import EmailMessage as MimePart
+from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import logout
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.db.models import Q
+from django.utils.html import escape
 from django.utils import timezone
 
 from apps.accounts.models import EmailVerificationToken, LoginAttempt, User
@@ -34,24 +37,76 @@ def login_blocked(username, ip):
     return user_failures >= 5 or ip_failures >= 30
 
 
-def send_verification(user):
+def send_welcome(user):
+    name = escape(user.display_name)
+    text = (
+        f"Welcome to SplitMate, {user.display_name}.\n\n"
+        "Know who paid, who shares, and who still owes.\n\n"
+        "Your account is ready. Sign in with the same username and password to open your dashboard. "
+        "SplitMate keeps a clear record of shared bills, repayments, and balances."
+    )
+    html = (
+        '<img src="cid:welcome-cover" alt="Welcome to SplitMate. Know who paid, who shares, and who still owes." '
+        'style="width:100%;max-width:640px;border-radius:16px;display:block;">'
+        f"<p>Hello {name},</p>"
+        "<p>Your SplitMate account is ready. Sign in with the same username and password you just chose.</p>"
+        "<p>Your dashboard shows what you owe, what you are owed, and the shared bills you add with other people. "
+        "SplitMate records the expenses. It does not move the money.</p>"
+    )
+    message = EmailMultiAlternatives(
+        subject="Welcome to SplitMate",
+        body=text,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[user.email],
+    )
+    message.attach_alternative(html, "text/html")
+    cover = Path(settings.BASE_DIR) / "static" / "images" / "welcome-cover.jpg"
+    if cover.is_file():
+        image = MimePart()
+        image.set_content(
+            cover.read_bytes(),
+            maintype="image",
+            subtype="jpeg",
+            cid="welcome-cover",
+            disposition="inline",
+            filename="welcome-cover.jpg",
+        )
+        message.attach(image)
+    message.send(fail_silently=False)
+
+
+def send_verification(user, request=None):
     raw, digest = make_token()
     EmailVerificationToken.objects.create(
         user=user,
         token_hash=digest,
         expires_at=timezone.now() + timedelta(days=2),
     )
-    link = f"{settings.SITE_BASE_URL}/accounts/verify-email/{raw}/"
-    try:
-        send_mail(
-            subject="Verify your SplitMate email",
-            message=f"Confirm this address for {user.display_name}:\n\n{link}\n\nThe link expires in two days.",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
-    except Exception:
-        pass
+    if request is not None:
+        base = request.build_absolute_uri("/").rstrip("/")
+    else:
+        base = settings.SITE_BASE_URL
+    link = f"{base}/accounts/verify-email/{raw}/"
+    name = escape(user.display_name)
+    text = (
+        f"Confirm this address for {user.display_name}.\n\n"
+        f"{link}\n\n"
+        "The link expires in two days. If you did not create a SplitMate account, ignore this message."
+    )
+    html = (
+        "<p>Confirm this address for "
+        f"{name}.</p>"
+        f'<p><a href="{link}">Verify your SplitMate email</a></p>'
+        "<p>The link expires in two days. If you did not create a SplitMate account, ignore this message.</p>"
+    )
+    message = EmailMultiAlternatives(
+        subject="Verify your SplitMate email",
+        body=text,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[user.email],
+    )
+    message.attach_alternative(html, "text/html")
+    message.send(fail_silently=False)
     return raw
 
 
@@ -109,6 +164,14 @@ def anonymize_user(user, request=None):
     return user
 
 
-def prepare_new_user(user):
+def prepare_new_user(user, request=None):
     link_group_invitations(user)
-    send_verification(user)
+    try:
+        send_welcome(user)
+    except Exception:
+        pass
+    try:
+        send_verification(user, request=request)
+    except Exception:
+        return None
+    return user

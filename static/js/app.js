@@ -12,16 +12,33 @@
     apply(root.dataset.themePreference || "system");
   });
 
+  const shell = document.querySelector(".app-shell");
+  const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
+  if (shell && sidebarToggle) {
+    const setSidebar = function (collapsed) {
+      shell.classList.toggle("sidebar-collapsed", collapsed);
+      sidebarToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      sidebarToggle.setAttribute("aria-label", collapsed ? "Show menu" : "Hide menu");
+    };
+    setSidebar(localStorage.getItem("splitmate-sidebar") === "hidden");
+    sidebarToggle.addEventListener("click", function () {
+      const collapsed = !shell.classList.contains("sidebar-collapsed");
+      setSidebar(collapsed);
+      localStorage.setItem("splitmate-sidebar", collapsed ? "hidden" : "shown");
+    });
+  }
+
   document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
     button.addEventListener("click", function () {
       const input = button.parentElement.querySelector("input");
       if (!input) return;
-      const show = input.type === "password";
-      input.type = show ? "text" : "password";
-      button.setAttribute("aria-pressed", show ? "true" : "false");
-      button.setAttribute("aria-label", show ? "Hide password" : "Show password");
+      const hidden = input.type === "password";
+      input.type = hidden ? "text" : "password";
+      const nowHidden = input.type === "password";
+      button.setAttribute("aria-pressed", nowHidden ? "false" : "true");
+      button.setAttribute("aria-label", nowHidden ? "Show password" : "Hide password");
       const icon = button.querySelector("i");
-      if (icon) icon.className = show ? "bi bi-eye-slash" : "bi bi-eye";
+      if (icon) icon.className = nowHidden ? "bi bi-eye-slash" : "bi bi-eye";
     });
   });
 

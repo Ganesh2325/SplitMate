@@ -1,3 +1,6 @@
+from smtplib import SMTPException
+from unittest.mock import patch
+
 from django.core import mail
 from django.test import TestCase
 
@@ -21,7 +24,10 @@ class AuthTests(TestCase):
         self.assertRedirects(response, "/accounts/login/")
         self.assertNotIn("_auth_user_id", self.client.session)
         self.assertTrue(User.objects.filter(username="ganesh").exists())
-        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 2)
+        subjects = {message.subject for message in mail.outbox}
+        self.assertIn("Welcome to SplitMate", subjects)
+        self.assertTrue(all(message.to == ["ganesh@example.com"] for message in mail.outbox))
         signed_in = self.client.post(
             "/accounts/login/",
             {"username": "ganesh", "password": "ValidPass123"},
@@ -113,3 +119,20 @@ class AuthTests(TestCase):
         self.assertIn("update the password for your SplitMate account", message.body)
         self.assertIn("/accounts/password-reset/", message.body)
         self.assertIn("arjun@example.com", message.to)
+
+    def test_resend_verification_sends_a_link(self):
+        user = make_user("nisha")
+        self.client.force_login(user)
+        response = self.client.post("/accounts/verify-email/resend/")
+        self.assertRedirects(response, "/dashboard/")
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(f"/accounts/verify-email/", mail.outbox[0].body)
+        self.assertNotIn("not valid", mail.outbox[0].body)
+        self.assertEqual(mail.outbox[0].to, ["nisha@example.com"])
+
+    def test_password_reset_stays_on_the_form_when_gmail_fails(self):
+        make_user("kiran")
+        with patch("django.contrib.auth.forms.PasswordResetForm.save", side_effect=SMTPException("gmail down")):
+            response = self.client.post("/accounts/password-reset/", {"email": "kiran@example.com"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "could not send the email through Gmail")

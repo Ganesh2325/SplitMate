@@ -1,7 +1,10 @@
+from smtplib import SMTPException
+
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, PasswordResetConfirmView, PasswordResetView
+from django.core.mail import BadHeaderError
 from django.urls import reverse_lazy
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -36,6 +39,16 @@ class SplitMatePasswordResetView(PasswordResetView):
     success_url = reverse_lazy("accounts:password_reset_done")
     form_class = StyledPasswordResetForm
 
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except (SMTPException, OSError, BadHeaderError):
+            form.add_error(
+                None,
+                "SplitMate could not send the email through Gmail. Check the connection and try again.",
+            )
+            return self.form_invalid(form)
+
 
 class SplitMatePasswordResetConfirmView(PasswordResetConfirmView):
     template_name = "accounts/password_reset_confirm.html"
@@ -63,7 +76,7 @@ def register(request):
     form = RegisterForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = form.save()
-        prepare_new_user(user)
+        prepare_new_user(user, request=request)
         messages.success(
             request,
             "Your account is ready. Log in with the same username and password to open your dashboard.",
@@ -88,9 +101,13 @@ def resend_verification(request):
     if request.user.email_verified_at:
         messages.info(request, "Your email is already verified.")
     else:
-        send_verification(request.user)
-        messages.success(request, "If email delivery is available, a new verification link was sent.")
-    return redirect("accounts:profile")
+        try:
+            send_verification(request.user, request=request)
+        except Exception:
+            messages.error(request, "SplitMate could not send the verification email. Try again in a moment.")
+        else:
+            messages.success(request, f"A verification link was sent to {request.user.email}.")
+    return redirect("reports:dashboard")
 
 
 @login_required
@@ -102,8 +119,12 @@ def profile(request):
         if user.email != previous_email:
             user.email_verified_at = None
             user.save(update_fields=["email_verified_at"])
-            send_verification(user)
-            messages.info(request, "Verify the new email address. The link is printed to the console in local development.")
+            try:
+                send_verification(user, request=request)
+            except Exception:
+                messages.error(request, "The new email was saved, but the verification message could not be sent.")
+            else:
+                messages.info(request, f"Verify the new email address. A link was sent to {user.email}.")
         messages.success(request, "Profile saved.")
         return redirect("accounts:profile")
     return render(request, "accounts/profile.html", {"form": form})

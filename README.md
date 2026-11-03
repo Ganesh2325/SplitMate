@@ -83,7 +83,7 @@ Then open http://127.0.0.1:8000/. If that address is already used by another pro
 .\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8001
 ```
 
-Until you connect a real mailbox, password and verification emails are printed in the server window. The rest of the app still works.
+Password and verification messages are sent from ganeshmaheshwaram2005@gmail.com through Gmail. The message goes to the email address on that person's account, whether it is Gmail, Outlook, or another provider. The Gmail app password stays in `.env` and is not part of the git repository.
 
 To load the weekend-trip example while debug is on:
 
