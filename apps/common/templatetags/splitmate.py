@@ -26,6 +26,13 @@ def get_item(mapping, key):
     return mapping.get(key, mapping.get(str(key), ""))
 
 
+@register.filter
+def display_name(person):
+    if person is None or person == "":
+        return ""
+    return getattr(person, "display_name", str(person))
+
+
 @register.simple_tag
 def balance_phrase(amount):
     amount = Decimal(amount or 0)

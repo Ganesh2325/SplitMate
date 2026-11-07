@@ -24,15 +24,19 @@ class AuthTests(TestCase):
         self.assertRedirects(response, "/accounts/login/")
         self.assertNotIn("_auth_user_id", self.client.session)
         self.assertTrue(User.objects.filter(username="ganesh").exists())
-        self.assertEqual(len(mail.outbox), 2)
-        subjects = {message.subject for message in mail.outbox}
-        self.assertIn("Welcome to SplitMate", subjects)
-        self.assertTrue(all(message.to == ["ganesh@example.com"] for message in mail.outbox))
+        self.assertEqual(len(mail.outbox), 0)
         signed_in = self.client.post(
             "/accounts/login/",
             {"username": "ganesh", "password": "ValidPass123"},
         )
         self.assertRedirects(signed_in, "/dashboard/")
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "Welcome to SplitMate")
+        self.assertIn("Hello Ganesh Rao", mail.outbox[0].body)
+        self.assertEqual(mail.outbox[0].to, ["ganesh@example.com"])
+        self.client.post("/accounts/logout/")
+        self.client.post("/accounts/login/", {"username": "ganesh", "password": "ValidPass123"})
+        self.assertEqual(len(mail.outbox), 1)
         for path in (
             "/dashboard/",
             "/expenses/",

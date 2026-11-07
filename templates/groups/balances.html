@@ -21,7 +21,7 @@
   <p>These are suggestions. Recording one is a separate step and does not happen automatically.</p>
   {% if simplify_error %}<div class="alert alert-warning">{{ simplify_error }}</div>{% endif %}
   {% for item in suggestions %}
-  <p>{{ users|get_item:item.debtor_id }} pays {{ users|get_item:item.creditor_id }} {{ item.amount|money:item.currency }}.
+  <p>{{ users|get_item:item.debtor_id|display_name }} pays {{ users|get_item:item.creditor_id|display_name }} {{ item.amount|money:item.currency }}.
     <a href="{% url 'settlements:settle' %}?payer={{ item.debtor_id }}&recipient={{ item.creditor_id }}&amount={{ item.amount }}&currency={{ item.currency }}&group={{ group.pk }}">Record this repayment</a>
   </p>
   {% empty %}<p class="text-secondary">{% if not simplify_error %}No suggested payments.{% endif %} {% if not group.simplify_debts %}<a href="?simplify=1">Calculate a plan anyway</a>{% endif %}</p>{% endfor %}

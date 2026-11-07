@@ -31,10 +31,9 @@
             {% if not expense %}<input type="hidden" name="currency" value="{{ currency }}">{% endif %}
             {% else %}
             <select class="form-select" id="currency" name="currency">
-              <option value="INR" {% if currency == "INR" %}selected{% endif %}>INR</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
+              {% for value, label in currencies %}
+              <option value="{{ value }}" {% if currency == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
             </select>
             {% endif %}
           </div>

@@ -10,7 +10,7 @@
     <select class="form-select mb-3" id="person" name="person" required>{% for friend in friends %}<option value="{{ friend.id }}">{{ friend.display_name }}</option>{% endfor %}</select>
     <label class="form-label" for="amount">Amount</label><input class="form-control mb-3" id="amount" name="amount" required inputmode="decimal">
     <label class="form-label" for="currency">Currency</label>
-    <select class="form-select mb-3" id="currency" name="currency">{% for value, label in currencies %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+    <select class="form-select mb-3" id="currency" name="currency">{% for value, label in currencies %}<option value="{{ value }}" {% if value == user.preferred_currency %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <label class="form-label" for="borrowed_on">Date</label><input class="form-control mb-3" id="borrowed_on" type="date" name="borrowed_on" value="{{ today|date:'Y-m-d' }}" required>
     <label class="form-label" for="notes">Notes</label><textarea class="form-control mb-3" id="notes" name="notes"></textarea>
     <button class="btn btn-amber" type="submit" data-save>Save loan</button>

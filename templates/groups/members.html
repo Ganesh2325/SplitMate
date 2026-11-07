@@ -20,7 +20,9 @@
         {% if can_manage and row.status == "active" and row.user_id != user.id %}
         <form method="post" action="{% url 'groups:member_action' group.pk row.user_id %}">{% csrf_token %}
           <select name="role" aria-label="Role for {{ row.user.display_name }}">
-            <option value="admin">Admin</option><option value="member">Member</option><option value="viewer">Read-only</option>
+            <option value="admin" {% if row.role == "admin" %}selected{% endif %}>Admin</option>
+            <option value="member" {% if row.role == "member" %}selected{% endif %}>Member</option>
+            <option value="viewer" {% if row.role == "viewer" %}selected{% endif %}>Read-only</option>
           </select>
           <button class="btn btn-sm btn-outline-secondary" name="action" value="role" type="submit">Set role</button>
           <button class="btn btn-sm btn-outline-danger" name="action" value="remove" type="submit">Remove</button>

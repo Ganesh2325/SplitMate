@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from apps.accounts.models import User
+from apps.common.constants import CURRENCY_CHOICES
 from apps.common.exceptions import AuthorizationError, DomainError
 from apps.expenses.access import can_edit_expense, can_view_expense
 from apps.expenses.discussion import add_comment, edit_comment, hide_comment
@@ -300,10 +301,23 @@ def expense_form(request, pk=None):
             "item_rows": item_rows,
             "split_method": (request.POST.get("split_method") if request.method == "POST" else None)
             or (expense.split_method if expense else seed.get("split_method") or (group.default_split_method if group else "equal")),
-            "currency": group.currency if group else request.user.preferred_currency,
+            "currency": _form_currency(request, group, expense),
+            "currencies": CURRENCY_CHOICES,
             "seed": seed,
         },
     )
+
+
+def _form_currency(request, group, expense):
+    if group is not None:
+        return group.currency
+    if expense is not None:
+        return expense.currency
+    chosen = request.POST.get("currency") if request.method == "POST" else request.user.preferred_currency
+    allowed = {code for code, _label in CURRENCY_CHOICES}
+    if chosen in allowed:
+        return chosen
+    return request.user.preferred_currency if request.user.preferred_currency in allowed else "INR"
 
 
 @login_required

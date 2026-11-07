@@ -18,6 +18,7 @@ class User(AbstractUser):
     theme = models.CharField(max_length=16, choices=THEME_CHOICES, default="system")
     profile_picture = models.ImageField(upload_to="profiles/", blank=True)
     email_verified_at = models.DateTimeField(null=True, blank=True)
+    welcome_sent_at = models.DateTimeField(null=True, blank=True)
     terms_accepted_at = models.DateTimeField(null=True, blank=True)
     deactivated_at = models.DateTimeField(null=True, blank=True)
     anonymized_at = models.DateTimeField(null=True, blank=True)

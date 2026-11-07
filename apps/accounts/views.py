@@ -21,7 +21,7 @@ from apps.accounts.forms import (
     StyledSetPasswordForm,
 )
 from apps.accounts.models import User
-from apps.accounts.services import anonymize_user, prepare_new_user, send_verification, verify_email
+from apps.accounts.services import anonymize_user, prepare_new_user, send_verification, send_welcome, verify_email
 from apps.common.exceptions import DomainError
 
 
@@ -29,6 +29,18 @@ class SplitMateLoginView(LoginView):
     template_name = "accounts/login.html"
     authentication_form = LoginForm
     redirect_authenticated_user = True
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = self.request.user
+        if user.welcome_sent_at is None:
+            try:
+                send_welcome(user)
+            except Exception:
+                return response
+            user.welcome_sent_at = timezone.now()
+            user.save(update_fields=["welcome_sent_at"])
+        return response
 
 
 class SplitMatePasswordResetView(PasswordResetView):
@@ -119,12 +131,7 @@ def profile(request):
         if user.email != previous_email:
             user.email_verified_at = None
             user.save(update_fields=["email_verified_at"])
-            try:
-                send_verification(user, request=request)
-            except Exception:
-                messages.error(request, "The new email was saved, but the verification message could not be sent.")
-            else:
-                messages.info(request, f"Verify the new email address. A link was sent to {user.email}.")
+            messages.info(request, "The new email is saved. Choose Resend email when you want a verification message.")
         messages.success(request, "Profile saved.")
         return redirect("accounts:profile")
     return render(request, "accounts/profile.html", {"form": form})

@@ -40,18 +40,31 @@ def login_blocked(username, ip):
 def send_welcome(user):
     name = escape(user.display_name)
     text = (
-        f"Welcome to SplitMate, {user.display_name}.\n\n"
-        "Know who paid, who shares, and who still owes.\n\n"
-        "Your account is ready. Sign in with the same username and password to open your dashboard. "
-        "SplitMate keeps a clear record of shared bills, repayments, and balances."
+        f"Hello {user.display_name},\n\n"
+        "Welcome to SplitMate. You are signed in.\n\n"
+        "SplitMate is a shared-expense record for trips, roommates, friends, families, and small teams. "
+        "It keeps a clear answer to four questions: who paid, who was supposed to share the cost, who still owes, "
+        "and what changed if a record is edited, cancelled, or reversed.\n\n"
+        "You can add friends and groups, record a bill, and split it equally, by exact amounts, by percentages, "
+        "by shares, or item by item. A positive balance means that person should receive money. "
+        "A negative balance means that person owes money. When you are ready, record a repayment. "
+        "SplitMate stores that note. It does not send or hold the money.\n\n"
+        "Your dashboard shows what you owe, what you are owed, and the latest shared bills."
     )
     html = (
         '<img src="cid:welcome-cover" alt="Welcome to SplitMate. Know who paid, who shares, and who still owes." '
         'style="width:100%;max-width:640px;border-radius:16px;display:block;">'
         f"<p>Hello {name},</p>"
-        "<p>Your SplitMate account is ready. Sign in with the same username and password you just chose.</p>"
-        "<p>Your dashboard shows what you owe, what you are owed, and the shared bills you add with other people. "
-        "SplitMate records the expenses. It does not move the money.</p>"
+        "<p>Welcome to SplitMate. You are signed in.</p>"
+        "<p>SplitMate is a shared-expense record for trips, roommates, friends, families, and small teams. "
+        "It answers four questions: who paid, who was supposed to share the cost, who still owes, "
+        "and what changed if a record is edited, cancelled, or reversed.</p>"
+        "<p>You can add friends and groups, record a bill, and split it equally, by exact amounts, by percentages, "
+        "by shares, or item by item. A positive balance means that person should receive money. "
+        "A negative balance means that person owes money.</p>"
+        "<p>When you are ready, record a repayment by cash, UPI, bank transfer, or Paytm. "
+        "SplitMate stores that note. It does not send or hold the money.</p>"
+        "<p>Your dashboard shows what you owe, what you are owed, and the latest shared bills.</p>"
     )
     message = EmailMultiAlternatives(
         subject="Welcome to SplitMate",
@@ -89,15 +102,20 @@ def send_verification(user, request=None):
     link = f"{base}/accounts/verify-email/{raw}/"
     name = escape(user.display_name)
     text = (
-        f"Confirm this address for {user.display_name}.\n\n"
+        f"Hello {user.display_name},\n\n"
+        "You asked SplitMate to confirm this email address.\n\n"
+        "SplitMate keeps a record of shared bills: who paid, who shares the cost, and who still owes. "
+        "Open the link below to mark this address as verified. The link expires in two days.\n\n"
         f"{link}\n\n"
-        "The link expires in two days. If you did not create a SplitMate account, ignore this message."
+        "If you did not ask for this, ignore the message. Your account stays as it is."
     )
     html = (
-        "<p>Confirm this address for "
-        f"{name}.</p>"
+        f"<p>Hello {name},</p>"
+        "<p>You asked SplitMate to confirm this email address.</p>"
+        "<p>SplitMate keeps a record of shared bills: who paid, who shares the cost, and who still owes. "
+        "Verifying this address lets SplitMate reach you about your account when you ask.</p>"
         f'<p><a href="{link}">Verify your SplitMate email</a></p>'
-        "<p>The link expires in two days. If you did not create a SplitMate account, ignore this message.</p>"
+        "<p>The link expires in two days. If you did not ask for this, ignore the message. Your account stays as it is.</p>"
     )
     message = EmailMultiAlternatives(
         subject="Verify your SplitMate email",
@@ -166,12 +184,4 @@ def anonymize_user(user, request=None):
 
 def prepare_new_user(user, request=None):
     link_group_invitations(user)
-    try:
-        send_welcome(user)
-    except Exception:
-        pass
-    try:
-        send_verification(user, request=request)
-    except Exception:
-        return None
     return user
