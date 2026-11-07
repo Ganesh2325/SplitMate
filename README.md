@@ -1,136 +1,199 @@
 # SplitMate
 
-SplitMate keeps a clear record of money that people share. It answers four questions:
+SplitMate is a shared-expense ledger for people who pay bills together. Each person keeps an account. A bill records who paid, who shares the cost, and how the amount is divided. Balances, repayments, loans, budgets, and reports are calculated from those records.
 
-- Who paid?
-- Who was supposed to share the cost?
-- Who still owes money?
-- What changed if someone edits, cancels, or reverses a record?
+The product is a Django web application. The browser presents forms and pages. The server checks permissions, calculates every share, and stores the result. SplitMate records that money changed hands. Banks, UPI, and other payment apps stay outside the product.
 
-It is for trips, roommates, students, families, and small teams. SplitMate does not send money. It only remembers what you enter, then shows the balance.
+## Who it is for
 
-## How a shared bill works
+- Trips, roommates, students, families, and small teams who need one shared record.
+- A person who wants to see what they should receive and what they still owe.
+- A developer who needs to run, extend, or deploy the application.
 
-1. **Record who paid.** One person can pay, or several people can pay parts of the same bill.
-2. **Choose the split.** Divide the total equally, by exact amounts, by percentages, by shares, or item by item. SplitMate checks that the shares add up to the total.
-3. **Settle when you are ready.** SplitMate can suggest who should pay whom. Nothing is recorded as paid until you confirm it yourself.
+## What a member can do
 
-A **positive** balance means that person should receive money. A **negative** balance means that person owes money. **Zero** means that part is settled.
+After sign-in, the menu is grouped into three areas. Every area remains available.
 
-## A short example
+| Area | Pages |
+| --- | --- |
+| Everyday | Dashboard, All expenses, Friends, Groups, Balances, Settle up |
+| Money tools | Recurring, Categories, Budgets, Reports, Informal debts, Templates |
+| Account | Notifications, Profile, Settings |
 
-Four friends go on a weekend trip. The bills are:
+A member can:
 
-| What | Amount | Who paid |
-| --- | ---: | --- |
-| Hotel | 4,000 | Ganesh |
-| Food | 2,000 | Rahul |
-| Transport | 1,000 | Priya |
-| Tickets | 1,000 | Arjun |
-
-The total is 8,000. Split equally, each person owes 2,000.
-
-- Ganesh paid 4,000 and owes 2,000, so Ganesh should receive **2,000**.
-- Rahul paid 2,000 and owes 2,000, so Rahul is **settled**.
-- Priya paid 1,000 and owes 2,000, so Priya owes **1,000**.
-- Arjun paid 1,000 and owes 2,000, so Arjun owes **1,000**.
-
-The four results add up to zero. That is how you know the record is complete.
-
-## What you can do
-
-The signed-in menu has three groups. Every item stays available.
-
-- **Everyday:** Dashboard, All expenses, Friends, Groups, Balances, Settle up.
-- **Money tools:** Recurring, Categories, Budgets, Reports, Informal debts, Templates.
-- **Account:** Notifications, Profile, Settings.
-
-You can also:
-
-- Create an account, then sign in with the same username and password. Creating an account does not sign you in.
-- Receive one welcome email the first time you sign in successfully.
-- Confirm your email only when you choose **Resend email**. SplitMate does not send that message on its own.
-- Reset a forgotten password from the login page. The reset message is sent to the email on the account.
-- Add friends and create groups. A group can have an owner, an admin, a member, or a read-only person.
-- Add expenses, comments, and receipt photos. The person who created an expense can edit it. A group owner or admin can edit group expenses too.
-- See balances for a group, for a friend, and for an informal loan separately. The same bill is not counted twice.
-- Record a repayment by cash, UPI, bank transfer, or Paytm. You can reverse it if it was a mistake. The original row stays in the history.
-- Keep categories, budgets, recurring bills, and expense templates.
+- Create an account and sign in afterwards. Registration returns the person to the login page.
+- Sign in with a username or an email address. The first successful sign-in sends one welcome message.
+- Confirm an email address by choosing **Resend email**. That message is sent only after the member asks for it.
+- Reset a forgotten password from the login page. The reset link goes to the address stored on the account.
+- Add friends, create groups, and invite people by username or email.
+- Give a group member the role of owner, admin, member, or read-only viewer.
+- Record an expense with one payer or several payers.
+- Split a bill equally, by exact amounts, by percentage, by shares, or item by item.
+- Comment on an expense and attach a receipt image.
+- Edit an expense when they created it, or when they are an owner or admin of its group.
+- Read balances for themselves, for one other person, and for a group.
+- Record a repayment and reverse it later. The original repayment remains in the history.
+- Keep an informal loan separate from shared bills.
+- Save categories, budgets, expense templates, and recurring schedules.
 - Open reports and download them as CSV, Excel, or PDF.
 
-## What SplitMate does not do
+## Balance rule
 
-- It does not move or check money. A repayment is your note that the money changed hands.
-- It does not read receipts into an expense. Receipt scanning is turned off.
-- It does not create recurring bills by itself. Someone has to run the recurring command, or a scheduler has to run it.
-- One group uses one currency. Rupees and dollars are never added together.
+A **positive** balance means that person should receive money. A **negative** balance means that person owes money. **Zero** means that part of the ledger is settled. Group balances and informal loans are kept apart, so one bill is counted once.
 
-## Architecture
+One group uses one currency. Amounts in different currencies stay in separate totals.
 
-SplitMate is one Django project. The outer folder is the project you open. Inside it, `config` is the project package that starts the site, and `apps` holds the feature apps. This is the same Django layout as an inner project folder plus apps. The inner folder is named `config` so it is obvious that it holds settings, URLs, and the server entry points.
+## How a person starts
+
+1. Open the home page and choose **Create account**.
+2. Enter a name, username, email, and a password of at least 6 characters, then accept the terms and privacy policy.
+3. Sign in on the next page. The dashboard opens.
+4. Add a friend or create a group, then record an expense or a repayment.
+
+**Forgot password** on the login page sends a reset link to the account email.
+
+## High-level design
+
+SplitMate has four layers. Each layer has one job. A user action enters at the top and reaches the database only after the application layer has checked the person and the numbers.
+
+```mermaid
+flowchart TB
+  subgraph client [Client]
+    Browser[Browser]
+  end
+
+  subgraph presentation [Presentation]
+    Pages[Django templates]
+    Assets[CSS, JavaScript, images]
+  end
+
+  subgraph application [Application]
+    Entry[config: settings, URLs, middleware]
+    Views[Feature views]
+    Services[Domain services]
+  end
+
+  subgraph data [Data and delivery]
+    Database[(SQLite or PostgreSQL)]
+    Files[Uploaded media]
+    Mail[SMTP mail]
+  end
+
+  Browser --> Entry
+  Entry --> Views
+  Views --> Services
+  Services --> Database
+  Views --> Files
+  Services --> Mail
+  Views --> Pages
+  Pages --> Browser
+  Assets --> Browser
+```
+
+| Layer | Responsibility |
+| --- | --- |
+| Client | Shows pages, sends forms, and keeps the signed-in session cookie. |
+| Presentation | Renders HTML from `templates/` and serves `static/` and uploaded files. |
+| Application | Routes the address, checks the session, applies the business rules, and returns the next page. |
+| Data and delivery | Stores rows, stores uploads, and sends mail when a feature asks for it. |
+
+`config` is the Django project package. It holds settings, the URL table, middleware, and the server entry points. Feature code lives in `apps`. Each app owns its models, views, and rules. Shared money math lives in `apps/common`, so every feature uses the same split and currency rules.
+
+## Request path
+
+This is the path of one signed-in action, such as saving an expense, recording a repayment, or updating a profile. The same path applies to the other forms.
+
+```mermaid
+sequenceDiagram
+  actor Member
+  participant Browser
+  participant Middleware
+  participant View
+  participant Service
+  participant Database
+  participant Page
+
+  Member->>Browser: Submit a form
+  Browser->>Middleware: POST with session cookie and CSRF token
+  Middleware->>Middleware: Confirm host, session, and CSRF
+  Middleware->>View: Authenticated request
+  View->>View: Check role and membership
+  View->>Service: Pass the cleaned action
+  Service->>Service: Validate amounts, people, and currency
+  Service->>Database: Save the rows in one transaction
+  Database-->>Service: Stored result
+  Service-->>View: Success or a domain error
+  View->>Page: Redirect or render the message
+  Page-->>Browser: HTML response
+  Browser-->>Member: Updated page
+```
+
+What each step guarantees:
+
+1. **Browser.** The form includes the CSRF token. A signed-in session identifies the member.
+2. **Middleware.** Django rejects an unknown host, a missing token, and an anonymous request to a private page.
+3. **View.** The view loads only records that member is allowed to see. A hidden expense or another person's edit returns a not-found response.
+4. **Service.** Shares must add up to the bill. A viewer cannot add a group expense. A repayment can be recorded by a participant or by a group admin.
+5. **Database.** The write is one transaction. A failed rule leaves the previous rows unchanged.
+6. **Page.** The member sees a confirmation, or the same form with the reason the action was refused.
+
+Reading a page uses the same path and stops before a write. Reports read the stored rows and build CSV, Excel, or PDF in the application layer.
+
+Mail is a side step. Welcome mail runs after the first successful sign-in. Password reset and email confirmation run when the member asks for them. A mail failure is logged. Sign-in still completes, and a missed welcome can be sent on a later sign-in.
+
+## Repository map
 
 ```text
 SplitMate/
-  manage.py              starts the site and the management commands
-  config/                project package: settings, URLs, server entry
-  apps/                  one folder for each feature
-  templates/             HTML pages
-  static/                CSS, JavaScript, and images
-  requirements.txt       Python packages
-  .env.example           names of settings, with no secrets
-  .env                   your private settings (not in git)
-  db.sqlite3             the local database file (not in git)
-  media/                 uploaded pictures and receipts (not in git)
+  manage.py                 Command entry. Loads config.settings.
+  config/                   Project package.
+    settings.py             Installed apps, database, mail, security.
+    urls.py                 Root URL table.
+    wsgi.py                 Production WSGI entry.
+    asgi.py                 ASGI entry.
+    middleware.py           Request id and member timezone.
+  apps/                     Feature applications.
+  templates/                HTML for public and signed-in pages.
+  static/                   CSS, JavaScript, and images.
+  requirements.txt          Python dependencies.
+  .env.example              Setting names for a local copy.
+  Dockerfile                Container image based on Python 3.14.
+  docker-compose.yml        Web and PostgreSQL services.
 ```
 
-A page request moves in one direction:
+These paths are created on a machine and are excluded from git:
 
-```text
-Browser
-  -> config/urls.py          chooses the app
-  -> apps/<feature>/views.py reads the form and checks who is signed in
-  -> apps/<feature>/services.py and apps/common/  calculate shares and balances
-  -> db.sqlite3              stores the rows
-  -> templates/ and static/  draw the page
-  -> Browser
-```
-
-Money math lives on the server. The browser does not decide a share, a balance, or a suggested repayment. A positive number means that person should receive money. A negative number means that person owes money.
-
-### The project package
-
-| Folder or file | What it is for |
+| Path | Contents |
 | --- | --- |
-| `manage.py` | The command you run. It points Django at `config.settings`. |
-| `config/settings.py` | Apps, database, email, passwords, and file locations. |
-| `config/urls.py` | The front door. It sends each address to the right app. |
-| `config/wsgi.py` and `config/asgi.py` | How a production server loads the project. |
-| `config/middleware.py` | Adds a request id and uses each person's timezone. |
+| `.env` | Secret key, mail credentials, and host settings. |
+| `db.sqlite3` | Local SQLite database, used when `DB_ENGINE` is `sqlite`. |
+| `media/` | Profile pictures, group images, and receipt files. |
+| `staticfiles/` | Collected static files for a production server. |
+| `.venv/` | The local Python environment. |
 
-### The apps
+## Applications
 
-Each app owns its models, pages, and rules. Shared helpers live in `apps/common` so the other apps do not copy the same money code.
-
-| App | What it keeps |
+| App | Owns |
 | --- | --- |
-| `accounts` | People, passwords, profile, welcome mail, and email confirmation. |
-| `friends` | Friend requests, blocks, and email invitations. |
-| `groups` | Groups, members, roles, and invitations. |
-| `expenses` | Bills, who paid, who shares, comments, receipts, and templates. |
-| `settlements` | Balances, recorded repayments, and informal loans. |
-| `categories` | Built-in and personal expense categories. |
-| `budgets` | Spending limits for a person or a group. |
-| `recurring` | Schedules that can create a real expense later. |
-| `reports` | Dashboard, charts, and CSV, Excel, and PDF downloads. |
-| `notifications` | In-app messages and optional email notices. |
-| `audit` | A history of important changes. |
-| `common` | Currencies, split math, and the money format used by every page. |
+| `accounts` | Members, passwords, profile, welcome mail, and email confirmation. |
+| `friends` | Friend requests, blocks, and invitations by email. |
+| `groups` | Groups, membership, roles, and group invitations. |
+| `expenses` | Bills, payers, shares, comments, receipts, and templates. |
+| `settlements` | Balances, repayments, reversals, and informal loans. |
+| `categories` | System categories and categories created by a member. |
+| `budgets` | Personal and group spending limits. |
+| `recurring` | Schedules that create an expense when the command runs. |
+| `reports` | Dashboard, charts, and file exports. |
+| `notifications` | In-app notices and optional email notices. |
+| `audit` | A record of important changes. |
+| `common` | Currencies, split calculations, and the shared money format. |
 
-### Where the data is stored
+## Data
 
-Local development uses one SQLite file, `db.sqlite3`, in the project folder. That file is the database. Accounts, groups, expenses, shares, repayments, loans, budgets, and notifications are rows inside it. Uploaded profile pictures, group images, and receipts go in `media/`.
+Local development stores relational data in `db.sqlite3` in the project folder. Set `DB_ENGINE=postgres` to use PostgreSQL with the `POSTGRES_*` settings. Uploaded files stay in `media/` in both modes.
 
-Both `db.sqlite3` and `media/` stay on your computer. They are listed in `.gitignore`, so a git push does not publish them. To look at the rows, open `db.sqlite3` in [DB Browser for SQLite](https://sqlitebrowser.org/), or from the project folder run:
+Open `db.sqlite3` with [DB Browser for SQLite](https://sqlitebrowser.org/), or inspect rows from the project folder:
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py shell
@@ -142,47 +205,36 @@ for user in User.objects.order_by("id"):
     print(user.id, user.username, user.email)
 ```
 
-The useful tables are:
-
-| What you are looking for | Table |
+| Record | Table |
 | --- | --- |
-| Username, email, password hash, currency | `accounts_user` |
-| Friend links | `friends_friendship` |
-| Groups and members | `groups_group`, `groups_groupmembership` |
-| Expenses, who paid, who shares | `expenses_expense`, `expenses_expensepayer`, `expenses_expenseshare` |
-| Recorded repayments | `settlements_settlement` |
-| Informal loans | `settlements_informaldebt` |
-| Categories, budgets, repeating bills | `categories_expensecategory`, `budgets_budget`, `recurring_recurringexpense` |
-| Notifications | `notifications_notification` |
+| Member, email, password hash, currency | `accounts_user` |
+| Friend link | `friends_friendship` |
+| Group and membership | `groups_group`, `groups_groupmembership` |
+| Expense, payer, and share | `expenses_expense`, `expenses_expensepayer`, `expenses_expenseshare` |
+| Repayment | `settlements_settlement` |
+| Informal loan | `settlements_informaldebt` |
+| Category, budget, and schedule | `categories_expensecategory`, `budgets_budget`, `recurring_recurringexpense` |
+| Notification | `notifications_notification` |
 
-Passwords are stored as hashes. Set `DB_ENGINE=postgres` in `.env` when you want PostgreSQL instead of the SQLite file.
+Passwords are stored as hashes. Account deletion anonymizes the member row so older bills keep a stable person.
 
-## Use it in the browser
+## Security
 
-1. Open the home page.
-2. Choose **Create account**. Enter your name, username, email, and a password of at least 6 characters. Agree to the terms and privacy policy.
-3. After the account is saved, you land on the login page. You are not signed in yet.
-4. Sign in with the same username and password. Your dashboard opens. The first successful sign-in sends the welcome email.
-5. From the dashboard you can add an expense, create a group, add a friend, or settle up.
+- Private pages require a signed-in session.
+- State-changing forms require a CSRF token.
+- Login attempts are throttled.
+- The password rule is a minimum of 6 characters.
+- Session cookies are HTTP-only. Secure cookies are used when debug is off.
+- Receipt downloads are limited to members who can view that expense.
+- Mail credentials are read from the environment. They belong in `.env`, which git ignores.
 
-If you forget the password, choose **Forgot password**, enter the account email, and open the link in the message.
+## Run it from scratch
 
-To try the product with four people at once, use a normal window and a private window for each person. One browser window keeps one login.
-
-| Window | Username | Password |
-| --- | --- | --- |
-| Normal Chrome | `ganesh` | `ValidPass123` |
-| Chrome private window | `rahul` | `ValidPass123` |
-| Normal Edge | `priya` | `ValidPass123` |
-| Edge private window | `arjun` | `ValidPass123` |
-
-Those four accounts exist only after you run `seed_demo`. Their emails are `ganesh@example.com`, `rahul@example.com`, `priya@example.com`, and `arjun@example.com`.
-
-## Run it on your computer
-
-You need Python 3.14. In PowerShell, from this folder:
+Requirements: Python 3.14 and PowerShell or another terminal. From a new clone:
 
 ```powershell
+git clone https://github.com/Ganesh2325/SplitMate.git
+cd SplitMate
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 copy .env.example .env
@@ -190,33 +242,52 @@ copy .env.example .env
 .\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8001
 ```
 
-Then open http://127.0.0.1:8001/.
+Open http://127.0.0.1:8001/ and create an account.
 
-Password, welcome, and verification messages are sent through the Gmail account named in `.env`. The message goes to the email address on that person's account, whether it is Gmail, Outlook, or another provider. The mailbox address and app password stay in `.env` and are not part of the git repository.
+Fill `.env` before relying on mail. `EMAIL_HOST_USER` is the sending mailbox. `EMAIL_HOST_PASSWORD` is a Gmail app password for that mailbox. Messages are delivered to each member's own address. Leave both values empty in any file that is committed.
 
-To load the weekend-trip example while debug is on:
-
-```powershell
-.\.venv\Scripts\python.exe manage.py seed_demo
-```
-
-Sign in as `ganesh` with password `ValidPass123`. The same password is used for `rahul`, `priya`, and `arjun` when that command creates them. The command will not replace expenses that are already in the Weekend Trip group, and it will not run when debug is off.
-
-## Checks and other commands
+Useful checks:
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py check
 .\.venv\Scripts\python.exe manage.py test
-.\.venv\Scripts\python.exe manage.py process_recurring_expenses
-.\.venv\Scripts\python.exe manage.py send_repayment_reminders
-.\.venv\Scripts\python.exe manage.py purge_login_attempts
-.\.venv\Scripts\python.exe manage.py reconcile_balances
 ```
 
-`process_recurring_expenses` is safe to run more than once on the same day. It will not create the same bill twice.
+`GET /health/` returns `{"status": "ok"}` when the database accepts a query.
 
-For a public server, set `DJANGO_DEBUG=false`, a long `DJANGO_SECRET_KEY`, and your real host name in `DJANGO_ALLOWED_HOSTS`. Use HTTPS before turning on `ENABLE_HSTS`. Staff can open `/admin/`. Change expenses and repayments on the site, not by typing amounts directly in the admin.
+## Operations
 
-`GET /health/` checks that the database can answer a simple query.
+| Command | Purpose |
+| --- | --- |
+| `process_recurring_expenses` | Create due expenses from active schedules. A second run on the same day does not duplicate a bill. |
+| `send_repayment_reminders` | Email reminder notices where the member has allowed them. |
+| `purge_login_attempts` | Remove old login-attempt rows. |
+| `reconcile_balances` | Recalculate stored balance figures from expenses and repayments. |
 
-Docker files are included as a starting point. They were not run in this project, so try them in your own environment before you rely on them.
+Run a command with:
+
+```powershell
+.\.venv\Scripts\python.exe manage.py process_recurring_expenses
+```
+
+Recurring bills are created by this command, or by a scheduler that runs it. The web process does not create them in the background.
+
+## Production
+
+Set these in the environment:
+
+| Setting | Production value |
+| --- | --- |
+| `DJANGO_DEBUG` | `false` |
+| `DJANGO_SECRET_KEY` | A long random string |
+| `DJANGO_ALLOWED_HOSTS` | The public host name |
+| `SITE_BASE_URL` | The public `https://` origin |
+| `DB_ENGINE` | `postgres` |
+| `CSRF_TRUSTED_ORIGINS` | The public `https://` origin |
+| `ENABLE_HSTS` | `true` only after HTTPS is working |
+
+Staff tools are at `/admin/`. Change bills and repayments through the product pages so the share rules and the audit history stay intact.
+
+The `Dockerfile` and `docker-compose.yml` files start Gunicorn and PostgreSQL. Treat them as a starting point and verify them in the target environment before relying on them.
+
+Receipt text extraction stays off unless `ENABLE_OCR` is enabled in an environment where that dependency is installed.
